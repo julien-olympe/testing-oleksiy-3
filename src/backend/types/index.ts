@@ -10,13 +10,13 @@ declare module 'fastify' {
   interface FastifyRequest {
     userSession?: SessionData;
   }
-  
-  interface FastifyInstance {
-    sessionStore?: {
-      get: (sessionId: string) => Promise<SessionData | null>;
-      set: (sessionId: string, data: SessionData) => Promise<void>;
-      destroy: (sessionId: string) => Promise<void>;
-    };
+}
+
+// Extend @fastify/session's session object to include our custom properties
+declare module '@fastify/session' {
+  interface FastifySessionObject {
+    userId?: string;
+    username?: string;
   }
 }
 

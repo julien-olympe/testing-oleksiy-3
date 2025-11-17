@@ -2,7 +2,6 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { registerSchema, loginSchema } from '../validation/schemas';
 import { userService } from '../services/user.service';
 import { sendSuccess, sendError, AppError } from '../utils/errors';
-import { generateSessionToken } from '../utils/security';
 import { setSecurityHeaders } from '../utils/security';
 import { logger } from '../utils/logger';
 
@@ -54,25 +53,14 @@ export async function authRoutes(fastify: FastifyInstance) {
         validated.password
       );
 
-      // Create session
-      const sessionToken = generateSessionToken();
-      if (!fastify.sessionStore) {
-        throw new AppError(500, 'INTERNAL_ERROR', 'Session store not configured.');
+      // Create session using @fastify/session's built-in session management
+      if (!request.session) {
+        throw new AppError(500, 'INTERNAL_ERROR', 'Session not configured.');
       }
-      await fastify.sessionStore.set(sessionToken, {
-        userId: user.id,
-        username: user.username,
-      });
-
-      // Set cookie
-      const isProduction = process.env.NODE_ENV === 'production';
-      reply.setCookie('session', sessionToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'strict',
-        path: '/',
-        maxAge: 86400, // 24 hours
-      });
+      
+      // Store user data in session
+      request.session.userId = user.id;
+      request.session.username = user.username;
 
       sendSuccess(reply, user);
     } catch (error) {
@@ -102,20 +90,17 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.post('/api/auth/logout', async (request: FastifyRequest, reply: FastifyReply) => {
     setSecurityHeaders(reply);
 
-    const sessionId = request.cookies.session;
-    if (sessionId && fastify.sessionStore) {
-      await fastify.sessionStore.destroy(sessionId);
+    // Destroy session using @fastify/session's built-in method
+    if (request.session) {
+      const userId = request.session.userId;
+      // Clear session data - @fastify/session will handle session invalidation
+      delete request.session.userId;
+      delete request.session.username;
+      
       logger.info('User logged out', {
-        sessionId,
+        userId,
       });
     }
-
-    reply.clearCookie('session', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-    });
 
     sendSuccess(reply, { message: 'Logged out successfully' });
   });

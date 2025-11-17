@@ -8,41 +8,21 @@ export function createAuthenticateMiddleware(fastify: FastifyInstance) {
     request: FastifyRequest,
     reply: FastifyReply
   ): Promise<void> {
-    const sessionId = request.cookies.session;
+    // Use @fastify/session's built-in session management
+    if (!request.session) {
+      throw new AppError(500, 'INTERNAL_ERROR', 'Session not configured.');
+    }
 
-    if (!sessionId) {
+    // Check if session has user data
+    if (!request.session.userId || !request.session.username) {
       throw new AppError(401, 'AUTHENTICATION_ERROR', 'Session expired or invalid. Please login again.');
     }
 
-    if (!fastify.sessionStore) {
-      throw new AppError(500, 'INTERNAL_ERROR', 'Session store not configured.');
-    }
-
-    try {
-      const session = await fastify.sessionStore.get(sessionId);
-
-      if (!session || !session.userId) {
-        throw new AppError(401, 'AUTHENTICATION_ERROR', 'Session expired or invalid. Please login again.');
-      }
-
-      // Attach session data to request
-      request.userSession = {
-        userId: session.userId,
-        username: session.username,
-      };
-    } catch (error) {
-      logger.warn('Authentication failed', {
-        sessionId,
-        ipAddress: request.ip,
-        endpoint: request.url,
-      });
-
-      if (error instanceof AppError) {
-        throw error;
-      }
-
-      throw new AppError(401, 'AUTHENTICATION_ERROR', 'Session expired or invalid. Please login again.');
-    }
+    // Attach session data to request
+    request.userSession = {
+      userId: request.session.userId,
+      username: request.session.username,
+    };
   };
 }
 
@@ -51,39 +31,24 @@ export async function authenticate(
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
-  if (!request.server.sessionStore) {
-    throw new AppError(500, 'INTERNAL_ERROR', 'Session store not configured.');
+  // Use @fastify/session's built-in session management
+  if (!request.session) {
+    throw new AppError(500, 'INTERNAL_ERROR', 'Session not configured.');
   }
 
-  const sessionId = request.cookies.session;
-
-  if (!sessionId) {
-    throw new AppError(401, 'AUTHENTICATION_ERROR', 'Session expired or invalid. Please login again.');
-  }
-
-  try {
-    const session = await request.server.sessionStore.get(sessionId);
-
-    if (!session || !session.userId) {
-      throw new AppError(401, 'AUTHENTICATION_ERROR', 'Session expired or invalid. Please login again.');
-    }
-
-    // Attach session data to request
-    request.userSession = {
-      userId: session.userId,
-      username: session.username,
-    };
-  } catch (error) {
+  // Check if session has user data
+  const session = request.session as any;
+  if (!session.userId || !session.username) {
     logger.warn('Authentication failed', {
-      sessionId,
       ipAddress: request.ip,
       endpoint: request.url,
     });
-
-    if (error instanceof AppError) {
-      throw error;
-    }
-
     throw new AppError(401, 'AUTHENTICATION_ERROR', 'Session expired or invalid. Please login again.');
   }
+
+  // Attach session data to request
+  request.userSession = {
+    userId: session.userId,
+    username: session.username,
+  };
 }
