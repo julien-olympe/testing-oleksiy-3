@@ -16,7 +16,7 @@
 1. User clicks on a checkup in the parts/checkups list
 2. System retrieves checkup ID
 3. System queries database for documentation associated with checkup
-4. System retrieves images (BLOB or file references)
+4. System retrieves images (BLOB data from PostgreSQL BYTEA array)
 5. System retrieves text descriptions
 6. System displays images in right panel
 7. System displays text descriptions in right panel
