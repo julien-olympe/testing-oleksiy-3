@@ -60,7 +60,7 @@ The application follows a project-based workflow model:
 - Powerplant (id, name, location)
 - Part (id, powerplant_id, name, description)
 - Checkup (id, part_id, name, description, documentation)
-- Project (id, user_id, powerplant_id, status, created_date, finished_date)
+- Project (id, user_id, powerplant_id, status, created_at, finished_at)
 - CheckupStatus (project_id, checkup_id, status_value)
 
 **Data Flow:**
@@ -97,7 +97,7 @@ The application follows a project-based workflow model:
 - Responsive design for mobile and desktop devices
 - Database: PostgreSQL (standard relational database for structured data)
 - PDF generation: Server-side generation using PDFKit library
-- Image storage: Database BLOB storage or file system with database references
+- Image storage: Database BLOB storage for images (PostgreSQL BYTEA array, no external file system)
 - Authentication: Secure password hashing using bcrypt algorithm
 - Session management: Secure session tokens
 

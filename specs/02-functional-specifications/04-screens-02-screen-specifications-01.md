@@ -110,7 +110,7 @@
 - User double-clicks project item → triggers Open Project use case, navigates to Ongoing Project screen
 - User clicks "Start Project" button → navigates to Start Project screen
 - User clicks logout in user menu → ends session, navigates to login screen
-- Projects sorted by created_date (newest first)
+- Projects sorted by created_at (newest first)
 
 **Visual Design:**
 - Card-based or list-based layout for projects

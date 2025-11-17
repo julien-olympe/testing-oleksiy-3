@@ -62,7 +62,7 @@
    - Documentation images and descriptions
    - Project completion timestamp
 6. System updates project status to "Finished"
-7. System sets finished_date to current timestamp
+7. System sets finished_at to current timestamp
 8. System saves project update to database
 9. System triggers PDF download to user's browser
 10. System redirects user to home screen
