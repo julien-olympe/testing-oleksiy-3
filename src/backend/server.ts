@@ -44,15 +44,23 @@ async function start() {
     },
   });
 
-  // Rate limiting
+  // Rate limiting (more lenient in development)
+  const isProduction = process.env.NODE_ENV === 'production';
   await fastify.register(fastifyRateLimit, {
-    max: 100,
+    max: isProduction ? 100 : 10000, // Much higher limit in development/test
     timeWindow: '1 minute',
     skipOnError: false,
+    keyGenerator: (request: any) => {
+      // Skip rate limiting for health checks by using unique keys per request
+      if (request.url && request.url.startsWith('/api/health')) {
+        return `health-${Date.now()}-${Math.random()}`; // Unique key per health check
+      }
+      return request.ip || 'unknown';
+    },
   });
 
-  // Security headers on all responses
-  fastify.addHook('onSend', async (request, reply) => {
+  // Security headers on all responses (set early in request lifecycle)
+  fastify.addHook('preHandler', async (request, reply) => {
     setSecurityHeaders(reply);
   });
 

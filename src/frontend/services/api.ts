@@ -20,8 +20,11 @@ class ApiClient {
       (response) => response,
       (error: AxiosError) => {
         if (error.response?.status === 401) {
-          // Redirect to login on authentication error
-          window.location.href = '/login';
+          // Redirect to login on authentication error, but only if not already on login/register pages
+          const currentPath = window.location.pathname;
+          if (currentPath !== '/login' && currentPath !== '/register') {
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }
