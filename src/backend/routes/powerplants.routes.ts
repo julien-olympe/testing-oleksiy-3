@@ -8,7 +8,8 @@ import { authenticate } from '../middleware/auth';
 
 export async function powerplantsRoutes(fastify: FastifyInstance) {
   // List all powerplants
-  fastify.get('/api/powerplants', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/api/powerplants', { preHandler: authenticate }, async (request, reply) => {
+    const req = request as AuthenticatedRequest;
     setSecurityHeaders(reply);
 
     try {
@@ -16,14 +17,15 @@ export async function powerplantsRoutes(fastify: FastifyInstance) {
       sendSuccess(reply, powerplants);
     } catch (error) {
       sendError(reply, error as Error, {
-        userId: request.session.userId,
+        userId: req.userSession.userId,
         endpoint: '/api/powerplants',
       });
     }
   });
 
   // Get powerplant parts and checkups
-  fastify.get('/api/powerplants/:id/parts', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/api/powerplants/:id/parts', { preHandler: authenticate }, async (request, reply) => {
+    const req = request as AuthenticatedRequest;
     setSecurityHeaders(reply);
 
     try {
@@ -47,7 +49,7 @@ export async function powerplantsRoutes(fastify: FastifyInstance) {
         sendError(reply, new AppError(400, 'VALIDATION_ERROR', 'Validation failed', errors));
       } else {
         sendError(reply, error as Error, {
-          userId: request.session.userId,
+          userId: req.userSession.userId,
           powerplantId: (request.params as { id?: string }).id,
         });
       }

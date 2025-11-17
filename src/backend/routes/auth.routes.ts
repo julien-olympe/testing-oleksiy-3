@@ -56,6 +56,9 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       // Create session
       const sessionToken = generateSessionToken();
+      if (!fastify.sessionStore) {
+        throw new AppError(500, 'INTERNAL_ERROR', 'Session store not configured.');
+      }
       await fastify.sessionStore.set(sessionToken, {
         userId: user.id,
         username: user.username,
@@ -100,7 +103,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     setSecurityHeaders(reply);
 
     const sessionId = request.cookies.session;
-    if (sessionId) {
+    if (sessionId && fastify.sessionStore) {
       await fastify.sessionStore.destroy(sessionId);
       logger.info('User logged out', {
         sessionId,

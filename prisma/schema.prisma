@@ -59,7 +59,7 @@ model Checkup {
   partId              String    @map("part_id") @db.Uuid
   name                String    @db.VarChar(255)
   description         String?   @db.Text
-  documentationImages Bytes[]?  @map("documentation_images")
+  documentationImages Bytes[]  @default([]) @map("documentation_images")
   documentationText   String?  @map("documentation_text") @db.Text
   displayOrder        Int       @default(0) @map("display_order")
   createdAt           DateTime  @default(now()) @map("created_at")

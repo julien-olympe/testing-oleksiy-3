@@ -1,14 +1,26 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { logger } from '../utils/logger';
 
+// Extend FastifyRequest to store start time
+declare module 'fastify' {
+  interface FastifyRequest {
+    startTime?: number;
+  }
+}
+
 export async function requestLogger(
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
-  const startTime = Date.now();
+  request.startTime = Date.now();
+}
 
-  reply.addHook('onSend', async (request, reply) => {
-    const duration = Date.now() - startTime;
+export async function responseLogger(
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  if (request.startTime) {
+    const duration = Date.now() - request.startTime;
 
     logger.debug('Request completed', {
       method: request.method,
@@ -17,5 +29,5 @@ export async function requestLogger(
       duration: `${duration}ms`,
       ipAddress: request.ip,
     });
-  });
+  }
 }

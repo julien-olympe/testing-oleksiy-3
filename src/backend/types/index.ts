@@ -5,8 +5,23 @@ export interface SessionData {
   username: string;
 }
 
+// Extend FastifyRequest to include our custom session data
+declare module 'fastify' {
+  interface FastifyRequest {
+    userSession?: SessionData;
+  }
+  
+  interface FastifyInstance {
+    sessionStore?: {
+      get: (sessionId: string) => Promise<SessionData | null>;
+      set: (sessionId: string, data: SessionData) => Promise<void>;
+      destroy: (sessionId: string) => Promise<void>;
+    };
+  }
+}
+
 export interface AuthenticatedRequest extends FastifyRequest {
-  session: SessionData;
+  userSession: SessionData;
 }
 
 export interface ApiError {

@@ -8,7 +8,7 @@ import { projectsRoutes } from './routes/projects.routes';
 import { powerplantsRoutes } from './routes/powerplants.routes';
 import { healthRoutes } from './routes/health.routes';
 import { errorHandler } from './middleware/error-handler';
-import { requestLogger } from './middleware/request-logger';
+import { requestLogger, responseLogger } from './middleware/request-logger';
 import { setSecurityHeaders } from './utils/security';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -58,6 +58,7 @@ async function start() {
 
   // Request logging
   fastify.addHook('onRequest', requestLogger);
+  fastify.addHook('onSend', responseLogger);
 
   // Error handler
   fastify.setErrorHandler(errorHandler);
