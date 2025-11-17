@@ -106,7 +106,6 @@
 - Function comments: JSDoc format for public functions
 - Complex logic: Inline comments explaining non-obvious code
 - Type definitions: TypeScript interfaces and types documented
-- API documentation: OpenAPI/Swagger specification (future enhancement)
 
 **README Files:**
 - Project README: Installation instructions, setup guide, development workflow
@@ -157,7 +156,7 @@
 
 **Monitoring and Logging:**
 - Application logs: Structured JSON logs with log levels
-- Error tracking: Centralized error logging (future: Sentry or similar)
+- Error tracking: Application logs written to files (rotated daily, retained for 30 days)
 - Performance monitoring: Response time tracking, database query monitoring
 - Health checks: Automated health check endpoints monitored every 30 seconds
 
@@ -185,14 +184,14 @@
 ### 4.3.8 API Standards
 
 **RESTful Design:**
-- HTTP methods: GET (read), POST (create), PATCH (update), DELETE (remove, if implemented)
+- HTTP methods: GET (read), POST (create), PATCH (update). DELETE is not implemented (projects cannot be deleted)
 - Resource naming: Plural nouns (/api/projects, /api/users)
 - Status codes: 200 (success), 201 (created), 400 (bad request), 401 (unauthorized), 403 (forbidden), 404 (not found), 500 (server error)
 - Response format: JSON with consistent structure
 
 **API Versioning:**
 - Current version: v1 (implicit, no version prefix)
-- Future versions: /api/v2/ for breaking changes
+- Versioning strategy: Breaking changes require new version prefix (/api/v2/, /api/v3/, etc.)
 - Backward compatibility: Maintained for at least 1 major version
 
 **Error Handling:**

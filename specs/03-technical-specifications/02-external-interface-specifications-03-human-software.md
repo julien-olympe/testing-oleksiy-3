@@ -189,13 +189,12 @@
 8. Repeat for all checkups
 
 **Finishing a Project:**
-1. Ensure all checkups have status values set (optional validation)
-2. Click "Finish Report" button in top right corner
-3. Wait for PDF generation (typically 2-5 seconds)
-4. PDF automatically downloads to default download location
-5. Project status changes to "Finished"
-6. Screen redirects to Home screen
-7. Finished projects cannot be modified
+1. Click "Finish Report" button in top right corner (validation IS NOT required - project can be finished with unset checkup statuses)
+2. Wait for PDF generation (typically 2-5 seconds)
+3. PDF automatically downloads to default download location
+4. Project status changes to "Finished"
+5. Screen redirects to Home screen
+6. Finished projects cannot be modified
 
 **Viewing Documentation:**
 1. Open Ongoing Project screen

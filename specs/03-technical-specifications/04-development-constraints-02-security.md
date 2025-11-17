@@ -40,7 +40,6 @@
 **Role-Based Access Control:**
 - Current implementation: Single user role (no role differentiation)
 - All authenticated users have same permissions: create projects, update own projects, view own projects
-- Future enhancement: Admin role for powerplant management (not in current scope)
 
 **API Endpoint Protection:**
 - Public endpoints: POST /api/auth/register, POST /api/auth/login
@@ -72,7 +71,7 @@
 - Session token: Cryptographically random token, 32 bytes length
 - Token storage: Stored in secure HTTP-only cookie, not accessible via JavaScript
 - Token expiration: 24 hours from last activity, refreshed on each authenticated request
-- Token invalidation: Immediate invalidation on logout, all sessions invalidated on password change (future)
+- Token invalidation: Immediate invalidation on logout
 
 ### 4.2.4 Input Validation and Sanitization
 
@@ -99,7 +98,7 @@
 - Content Security Policy (CSP) headers: script-src 'self', object-src 'none'
 
 **Data Sanitization:**
-- Username: Trimmed, lowercased (optional, or preserve case)
+- Username: Trimmed, lowercased before storage
 - Email: Trimmed, lowercased before storage
 - Text fields: HTML tags stripped from descriptions (if HTML input allowed)
 - File uploads: Not supported (images stored as binary in database)
