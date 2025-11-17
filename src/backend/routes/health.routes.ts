@@ -1,13 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { PrismaClient } from '@prisma/client';
-import { setSecurityHeaders } from '../utils/security';
 import { logger } from '../utils/logger';
 
 const prisma = new PrismaClient();
 
 export async function healthRoutes(fastify: FastifyInstance) {
   fastify.get('/api/health', async (request, reply) => {
-    setSecurityHeaders(reply);
 
     try {
       // Check database connection

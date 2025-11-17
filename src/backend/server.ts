@@ -74,9 +74,16 @@ async function start() {
     await fastify.listen({ port: PORT, host: '0.0.0.0' });
     console.log(`Server listening on port ${PORT}`);
   } catch (err) {
-    fastify.log.error(err);
+    console.error('Error starting server:', err);
+    if (err instanceof Error) {
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
+    }
     process.exit(1);
   }
 }
 
-start();
+start().catch((err) => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
+});

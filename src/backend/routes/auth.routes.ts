@@ -2,14 +2,11 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { registerSchema, loginSchema } from '../validation/schemas';
 import { userService } from '../services/user.service';
 import { sendSuccess, sendError, AppError } from '../utils/errors';
-import { setSecurityHeaders } from '../utils/security';
 import { logger } from '../utils/logger';
 
 export async function authRoutes(fastify: FastifyInstance) {
   // Register
   fastify.post('/api/auth/register', async (request: FastifyRequest, reply: FastifyReply) => {
-    setSecurityHeaders(reply);
-
     try {
       const validated = registerSchema.parse(request.body);
       const user = await userService.createUser(
@@ -44,8 +41,6 @@ export async function authRoutes(fastify: FastifyInstance) {
 
   // Login
   fastify.post('/api/auth/login', async (request: FastifyRequest, reply: FastifyReply) => {
-    setSecurityHeaders(reply);
-
     try {
       const validated = loginSchema.parse(request.body);
       const user = await userService.authenticateUser(
@@ -88,8 +83,6 @@ export async function authRoutes(fastify: FastifyInstance) {
 
   // Logout
   fastify.post('/api/auth/logout', async (request: FastifyRequest, reply: FastifyReply) => {
-    setSecurityHeaders(reply);
-
     // Destroy session using @fastify/session's built-in method
     if (request.session) {
       const userId = request.session.userId;

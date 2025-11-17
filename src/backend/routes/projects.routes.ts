@@ -4,7 +4,6 @@ import { createProjectSchema, uuidParamSchema, checkupStatusParamSchema, updateC
 import { projectService } from '../services/project.service';
 import { pdfService } from '../services/pdf.service';
 import { sendSuccess, sendError, AppError } from '../utils/errors';
-import { setSecurityHeaders } from '../utils/security';
 import { authenticate } from '../middleware/auth';
 import { logger } from '../utils/logger';
 
@@ -12,7 +11,6 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   // List projects
   fastify.get('/api/projects', { preHandler: authenticate }, async (request, reply) => {
     const req = request as AuthenticatedRequest;
-    setSecurityHeaders(reply);
 
     try {
       const projects = await projectService.getUserProjects(req.userSession.userId);
@@ -28,7 +26,6 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   // Get project details
   fastify.get('/api/projects/:id', { preHandler: authenticate }, async (request, reply) => {
     const req = request as AuthenticatedRequest;
-    setSecurityHeaders(reply);
 
     try {
       const { id } = uuidParamSchema.parse(request.params);
@@ -59,7 +56,6 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   // Create project
   fastify.post('/api/projects', { preHandler: authenticate }, async (request, reply) => {
     const req = request as AuthenticatedRequest;
-    setSecurityHeaders(reply);
 
     try {
       const validated = createProjectSchema.parse(request.body);
@@ -92,7 +88,6 @@ export async function projectsRoutes(fastify: FastifyInstance) {
     { preHandler: authenticate },
     async (request, reply) => {
       const req = request as AuthenticatedRequest;
-      setSecurityHeaders(reply);
 
       try {
         const params = checkupStatusParamSchema.parse(request.params);
@@ -132,7 +127,6 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   // Finish project and generate PDF
   fastify.post('/api/projects/:id/finish', { preHandler: authenticate }, async (request, reply) => {
     const req = request as AuthenticatedRequest;
-    setSecurityHeaders(reply);
 
     try {
       const { id } = uuidParamSchema.parse(request.params);

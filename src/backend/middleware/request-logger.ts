@@ -19,13 +19,13 @@ export async function responseLogger(
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
-  if (request.startTime) {
+  if (request.startTime && !reply.sent) {
     const duration = Date.now() - request.startTime;
 
     logger.debug('Request completed', {
       method: request.method,
       url: request.url,
-      statusCode: reply.statusCode,
+      statusCode: reply.statusCode || 200,
       duration: `${duration}ms`,
       ipAddress: request.ip,
     });

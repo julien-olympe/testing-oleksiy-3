@@ -28,7 +28,9 @@ test.describe('Critical Path - Complete User Journey', () => {
     // Phase 1: User Registration (Steps 1-4)
     // Step 1: Navigate to application login screen
     await page.goto('/');
-    await expect(page.locator('text=Wind Power Plant Investigation').or(page.locator('h1')).first()).toBeVisible();
+    // Wait for redirect to login page
+    await expect(page).toHaveURL(/.*login/i, { timeout: 5000 });
+    await expect(page.locator('text=Login').or(page.locator('h2')).first()).toBeVisible();
     
     // Step 2: Navigate to registration screen
     const registerLink = page.locator('a:has-text("Register")').or(page.locator('text=/register/i')).first();
@@ -51,6 +53,17 @@ test.describe('Critical Path - Complete User Journey', () => {
 
     // Step 4: Submit registration
     await page.click('button:has-text("Register"), button[type="submit"]');
+    // Wait for either redirect to login or error message
+    await page.waitForTimeout(2000);
+    const currentUrl = page.url();
+    if (!currentUrl.includes('login')) {
+      // Check for error message
+      const errorElement = page.locator('[style*="background-color: #fee"], [style*="color: #c33"]');
+      if (await errorElement.isVisible()) {
+        const errorText = await errorElement.textContent();
+        throw new Error(`Registration failed with error: ${errorText}`);
+      }
+    }
     await expect(page).toHaveURL(/.*login/i, { timeout: 5000 });
 
     // Phase 2: User Login (Steps 5-6)

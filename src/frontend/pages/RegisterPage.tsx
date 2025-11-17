@@ -25,7 +25,7 @@ export function RegisterPage() {
 
     try {
       await register(username, email, password, passwordConfirmation);
-      navigate('/home');
+      navigate('/login');
     } catch (err: any) {
       const errorData = err.response?.data;
       if (errorData?.errors) {

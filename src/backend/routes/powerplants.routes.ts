@@ -3,14 +3,12 @@ import { AuthenticatedRequest } from '../types';
 import { uuidParamSchema } from '../validation/schemas';
 import { powerplantService } from '../services/powerplant.service';
 import { sendSuccess, sendError, AppError } from '../utils/errors';
-import { setSecurityHeaders } from '../utils/security';
 import { authenticate } from '../middleware/auth';
 
 export async function powerplantsRoutes(fastify: FastifyInstance) {
   // List all powerplants
   fastify.get('/api/powerplants', { preHandler: authenticate }, async (request, reply) => {
     const req = request as AuthenticatedRequest;
-    setSecurityHeaders(reply);
 
     try {
       const powerplants = await powerplantService.getAllPowerplants();
@@ -26,7 +24,6 @@ export async function powerplantsRoutes(fastify: FastifyInstance) {
   // Get powerplant parts and checkups
   fastify.get('/api/powerplants/:id/parts', { preHandler: authenticate }, async (request, reply) => {
     const req = request as AuthenticatedRequest;
-    setSecurityHeaders(reply);
 
     try {
       const { id } = uuidParamSchema.parse(request.params);
