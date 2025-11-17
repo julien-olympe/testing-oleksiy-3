@@ -100,7 +100,7 @@
 **Data Sanitization:**
 - Username: Trimmed, lowercased before storage
 - Email: Trimmed, lowercased before storage
-- Text fields: HTML tags stripped from descriptions (if HTML input allowed)
+- Text fields: HTML input is not allowed, plain text only. All user input in text fields is treated as plain text and stored as-is without HTML processing.
 - File uploads: Not supported (images stored as binary in database)
 
 ### 4.2.5 Data Protection
