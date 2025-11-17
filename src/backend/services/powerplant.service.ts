@@ -52,9 +52,11 @@ export class PowerplantService {
     }));
 
     return {
-      id: powerplant.id,
-      name: powerplant.name,
-      location: powerplant.location,
+      powerplant: {
+        id: powerplant.id,
+        name: powerplant.name,
+        location: powerplant.location,
+      },
       parts,
     };
   }

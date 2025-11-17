@@ -212,7 +212,7 @@ export class ProjectService {
     });
 
     return {
-      checkupId: checkupStatus.id,
+      checkupId: checkupStatus.checkupId,
       status: checkupStatus.statusValue,
       updatedAt: checkupStatus.updatedAt.toISOString(),
     };
