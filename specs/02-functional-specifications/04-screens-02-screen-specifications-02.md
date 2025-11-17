@@ -97,6 +97,7 @@
 
 **State Management:**
 - Project status "Finished" → "Finish Report" button disabled or hidden
-- All checkups with status set → visual indicator (optional: enable Finish Report only when all set)
+- All checkups with status set → visual indicator
+- "Finish Report" button enabled only when all checkups have status set
 - Selected checkup highlighted in parts list
 - Status changes saved automatically (no separate save button)

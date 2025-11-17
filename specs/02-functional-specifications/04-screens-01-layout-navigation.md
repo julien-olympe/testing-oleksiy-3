@@ -7,7 +7,7 @@ The application follows a standard web application layout with the following nav
 **Navigation Elements:**
 - **Header Bar**: Contains application title "Wind Power Plant Investigation" and user menu (username, logout option)
 - **Main Content Area**: Displays the current screen content
-- **Footer**: Optional footer with version information
+- **Footer**: Footer with version information
 
 **Navigation Flow:**
 - Login Screen → (after authentication) → Home Screen

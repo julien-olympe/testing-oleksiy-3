@@ -34,7 +34,7 @@
 **Visual Design:**
 - Clean, professional appearance
 - Responsive design (mobile and desktop)
-- Password field shows/hides toggle (optional enhancement)
+- Password field shows/hides toggle
 
 ---
 
@@ -67,12 +67,12 @@
 **Interactions:**
 - User enters information and clicks "Register" → triggers User Registration use case
 - User clicks "Back to Login" → navigates to login screen
-- Real-time validation for password match (optional enhancement)
+- Real-time validation for password match
 - Error messages display for each validation failure
 
 **Visual Design:**
 - Consistent with login screen styling
-- Password strength indicator (optional enhancement)
+- Password strength indicator
 - Responsive design
 
 ---

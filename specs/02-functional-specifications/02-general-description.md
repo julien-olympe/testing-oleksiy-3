@@ -36,7 +36,7 @@ The Wind Power Plant Status Investigation Application operates as a web-based sy
 
 **Actors:**
 - **Field Technician**: Primary user who conducts inspections, sets checkup statuses, and generates reports
-- **Project Manager**: User who may view projects and assign them to technicians
+- **Project Manager**: User who views projects and creates projects (projects are assigned to the creating user during creation)
 - **System Administrator**: Manages powerplant data, parts, checkups, and user accounts (implicit actor for data management)
 
 **External Systems:**
@@ -77,12 +77,12 @@ The application follows a project-based workflow model:
 - Mobile or desktop device access in field or office environments
 - Basic computer literacy required
 - Needs efficient data entry and clear visual feedback
-- May work in areas with limited internet connectivity (offline capability not specified, assumes online operation)
+- Requires consistent internet connectivity during project work (online operation required)
 
 **Project Manager:**
-- Secondary user who may view project statuses
+- Secondary user who views project statuses
 - Needs overview of all assigned projects
-- May assign projects to technicians (assignment mechanism not fully specified in requirements, assumes projects are assigned during creation)
+- Creates projects which are automatically assigned to the creating user during project creation
 
 **User Skills:**
 - Ability to navigate web interfaces
@@ -126,34 +126,34 @@ The application follows a project-based workflow model:
 - Checkup statuses can be updated until project is Finished
 - Finished projects are read-only
 
-## 2.5 Working Assumptions
+## 2.5 System Requirements
 
-**Business Assumptions:**
+**Business Requirements:**
 - Each powerplant has a predefined, stable set of parts and checkups
 - Users are assigned to specific projects (one user per project)
 - Projects represent single inspection events (not recurring inspections)
 - Report generation marks the project as complete
 - Documentation (images and descriptions) exists in database for reference during inspections
 
-**Technical Assumptions:**
-- Users have consistent internet connectivity during project work
+**Technical Requirements:**
+- Users must have consistent internet connectivity during project work
 - Database contains pre-populated powerplant, part, and checkup data
 - PDF generation occurs synchronously (user waits for download)
 - Images are stored in database or accessible file system
-- Browser supports file download functionality
-- Server has sufficient resources for concurrent PDF generation
+- Browser must support file download functionality
+- Server must have sufficient resources for concurrent PDF generation
 
-**Data Assumptions:**
-- Powerplant names are unique
-- Part names are unique within a powerplant
-- Checkup names are unique within a part
-- User email addresses are unique
-- Usernames are unique
+**Data Requirements:**
+- Powerplant names must be unique
+- Part names must be unique within a powerplant
+- Checkup names must be unique within a part
+- User email addresses must be unique
+- Usernames must be unique
 - Projects are created with "In Progress" status by default
 - All checkups must have a status set before project can be finished (validation requirement)
 
-**Operational Assumptions:**
+**Operational Requirements:**
 - System administrators manage powerplant data separately (not part of this application scope)
-- User registration is open (no approval workflow specified)
+- User registration is open (no approval workflow)
 - Project assignment happens automatically when user creates project
 - No multi-user collaboration on same project (single user assignment)
