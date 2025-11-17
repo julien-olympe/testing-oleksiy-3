@@ -107,7 +107,7 @@
 
 **Data Encryption:**
 - Data in transit: HTTPS/TLS 1.2 or higher for all client-server communication
-- Data at rest: Database encryption at filesystem level (PostgreSQL tablespace encryption, if configured)
+- Data at rest: Database encryption at filesystem level is required. PostgreSQL tablespace encryption must be configured for production deployments.
 - Password hashes: Bcrypt provides one-way hashing (not encryption, but secure)
 
 **Sensitive Data Handling:**
