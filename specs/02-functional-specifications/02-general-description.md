@@ -97,7 +97,7 @@ The application follows a project-based workflow model:
 - Responsive design for mobile and desktop devices
 - Database: PostgreSQL (standard relational database for structured data)
 - PDF generation: Server-side generation using PDFKit library
-- Image storage: Database BLOB storage for images (PostgreSQL BYTEA array, no external file system)
+- Image storage: Database BLOB storage for images (PostgreSQL BYTEA array, no external file system required)
 - Authentication: Secure password hashing using bcrypt algorithm
 - Session management: Secure session tokens
 
@@ -139,7 +139,7 @@ The application follows a project-based workflow model:
 - Users must have consistent internet connectivity during project work
 - Database contains pre-populated powerplant, part, and checkup data
 - PDF generation occurs synchronously (user waits for download)
-- Images are stored in database or accessible file system
+- Images are stored in database (PostgreSQL BYTEA array)
 - Browser must support file download functionality
 - Server must have sufficient resources for concurrent PDF generation
 

@@ -95,7 +95,7 @@
    - project_id = current project
    - checkup_id = selected checkup
    - status_value = selected status
-   - updated_date = current timestamp
+   - updated_at = current timestamp
 7. System saves to database
 8. System updates UI to reflect new status
 
