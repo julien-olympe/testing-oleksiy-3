@@ -81,7 +81,7 @@
 1. User is on home screen (automatically after login or navigation)
 2. System retrieves user ID from session
 3. System queries database for all projects where user_id matches
-4. System orders projects by created_date (newest first)
+4. System orders projects by created_at (newest first)
 5. System formats project data for display
 6. System renders project list with status indicators
 

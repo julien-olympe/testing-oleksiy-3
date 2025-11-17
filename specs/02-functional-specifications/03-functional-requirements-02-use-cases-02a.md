@@ -22,8 +22,8 @@
    - user_id = current user
    - powerplant_id = selected powerplant
    - status = "In Progress"
-   - created_date = current timestamp
-   - finished_date = NULL
+   - created_at = current timestamp
+   - finished_at = NULL
 6. System saves project to database
 7. System redirects user to home screen
 8. System refreshes project list to show new project
@@ -95,7 +95,7 @@
    - project_id = current project
    - checkup_id = selected checkup
    - status_value = selected status
-   - updated_date = current timestamp
+   - updated_at = current timestamp
 7. System saves to database
 8. System updates UI to reflect new status
 
