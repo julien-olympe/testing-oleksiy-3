@@ -33,14 +33,15 @@ test.describe('Critical Path - Complete User Journey', () => {
     await expect(page.locator('text=Login').or(page.locator('h2')).first()).toBeVisible();
     
     // Step 2: Navigate to registration screen
-    const registerLink = page.locator('a:has-text("Register")').or(page.locator('text=/register/i')).first();
-    if (await registerLink.isVisible()) {
-      await registerLink.click();
-    } else {
-      // Try to find register button or link
-      await page.locator('button:has-text("Register")').or(page.locator('[href*="register"]')).first().click();
-    }
-    await expect(page).toHaveURL(/.*register/i);
+    // Wait for page to be stable on login page
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/.*login/i, { timeout: 5000 });
+    
+    // Now click register link
+    const registerLink = page.locator('a:has-text("Register")').or(page.locator('[href*="register"]')).first();
+    await registerLink.waitFor({ state: 'visible', timeout: 5000 });
+    await registerLink.click();
+    await expect(page).toHaveURL(/.*register/i, { timeout: 5000 });
 
     // Step 3: Fill registration form
     await page.fill('input[name="username"], input[placeholder*="username" i], input[type="text"]:first-of-type', testData.username);
@@ -52,18 +53,37 @@ test.describe('Critical Path - Complete User Journey', () => {
     }
 
     // Step 4: Submit registration
+    // Wait for the API call to complete
+    const responsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/auth/register') && response.status() !== 0,
+      { timeout: 10000 }
+    ).catch(() => null);
+    
     await page.click('button:has-text("Register"), button[type="submit"]');
-    // Wait for either redirect to login or error message
-    await page.waitForTimeout(2000);
-    const currentUrl = page.url();
-    if (!currentUrl.includes('login')) {
-      // Check for error message
+    
+    // Wait for API response
+    const response = await responsePromise;
+    if (response && !response.ok()) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Registration API failed: ${response.status()} - ${JSON.stringify(errorData)}`);
+    }
+    
+    // Wait for navigation to login page
+    try {
+      await page.waitForURL(/.*login/i, { timeout: 10000 });
+    } catch (error) {
+      // Check if there's an error message instead
       const errorElement = page.locator('[style*="background-color: #fee"], [style*="color: #c33"]');
-      if (await errorElement.isVisible()) {
+      if (await errorElement.isVisible({ timeout: 2000 })) {
         const errorText = await errorElement.textContent();
         throw new Error(`Registration failed with error: ${errorText}`);
       }
+      // Log current URL for debugging
+      const currentUrl = page.url();
+      throw new Error(`Registration did not redirect to login. Current URL: ${currentUrl}`);
     }
+    
+    // Verify we're on login page
     await expect(page).toHaveURL(/.*login/i, { timeout: 5000 });
 
     // Phase 2: User Login (Steps 5-6)
@@ -77,12 +97,15 @@ test.describe('Critical Path - Complete User Journey', () => {
 
     // Phase 3: Start New Project (Steps 7-8)
     // Step 7: Verify Home screen
-    await expect(page.locator('text=/my projects/i, text=/projects/i, h1, h2').first()).toBeVisible();
-    const startProjectButton = page.locator('button:has-text("Start Project"), button:has-text("New Project"), a:has-text("Start Project")');
-    await expect(startProjectButton.first()).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    // Wait for loading to complete (wait for "Loading projects..." to disappear)
+    await page.waitForSelector('text=Loading projects...', { state: 'hidden', timeout: 10000 }).catch(() => {});
+    await expect(page.locator('text=/my projects/i').or(page.locator('text=/projects/i')).or(page.locator('h2')).first()).toBeVisible({ timeout: 10000 });
+    const startProjectButton = page.locator('button:has-text("Start Project")');
+    await expect(startProjectButton).toBeVisible({ timeout: 10000 });
 
     // Step 8: Navigate to Start Project screen
-    await startProjectButton.first().click();
+    await startProjectButton.click();
     await expect(page).toHaveURL(/.*projects.*new/i, { timeout: 5000 });
 
     // Phase 4: Select Powerplant (Step 9)

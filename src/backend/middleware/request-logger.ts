@@ -21,11 +21,12 @@ export async function responseLogger(
 ): Promise<void> {
   if (request.startTime && !reply.sent) {
     const duration = Date.now() - request.startTime;
+    const statusCode = reply.statusCode || 200;
 
     logger.debug('Request completed', {
       method: request.method,
       url: request.url,
-      statusCode: reply.statusCode || 200,
+      statusCode: statusCode,
       duration: `${duration}ms`,
       ipAddress: request.ip,
     });
