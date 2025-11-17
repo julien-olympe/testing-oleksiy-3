@@ -110,7 +110,7 @@
 **Scalability Constraints:**
 - Vertical scaling: Server can scale up to 16 CPU cores and 32 GB RAM
 - Horizontal scaling: Not supported in current architecture (single server deployment)
-- Database scaling: PostgreSQL supports read replicas for future scaling
+- Database scaling: Single PostgreSQL instance (read replicas not implemented)
 - Load balancing: Not implemented in current version
 
 **Availability Requirements:**

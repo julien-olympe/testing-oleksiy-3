@@ -42,7 +42,6 @@
 - Keyboard: Standard QWERTY keyboard for text input
 - Mouse: Standard pointing device for navigation and selection
 - Touchscreen: Touch input support for mobile and tablet devices
-- Camera: Optional camera for field image capture (future enhancement, not in current scope)
 
 **Output Devices:**
 - Display: Minimum resolution 1024x768 pixels, optimal 1920x1080 or higher
@@ -56,10 +55,6 @@
 - Secure connection: HTTPS with TLS 1.2 or higher
 - Port: 443 (HTTPS), 80 (HTTP redirect to HTTPS)
 - Content encoding: gzip compression enabled
-
-**WebSocket:**
-- Not used in current implementation
-- Future enhancement for real-time updates
 
 **Database Connection:**
 - Protocol: PostgreSQL native protocol

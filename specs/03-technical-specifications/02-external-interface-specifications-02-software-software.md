@@ -84,12 +84,6 @@
 - Purpose: Cross-Origin Resource Sharing (CORS) support
 - Interface: CORS plugin configuration for allowed origins and methods
 
-**@fastify/multipart**
-- Version: 8.0.x (latest)
-- Source/Vendor: Fastify organization
-- Purpose: Multipart form data parsing (for future file uploads)
-- Interface: req.isMultipart(), req.parts() for file handling
-
 ### 2.2.3 Database Technologies
 
 **PostgreSQL**

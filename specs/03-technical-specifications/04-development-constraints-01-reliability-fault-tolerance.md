@@ -83,7 +83,7 @@
 
 **Session Store Failure:**
 - Situation: Session storage becomes unavailable (if using external session store)
-- Handling: Fallback to in-memory session store, existing sessions may be lost, users redirected to login
+- Handling: Fallback to in-memory session store, existing sessions ARE lost, users redirected to login
 - User notification: Users see login screen with message "Session expired. Please login again."
 - Prevention: Use in-memory session store by default (no external dependency), session data minimal
 
