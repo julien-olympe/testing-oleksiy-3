@@ -18,7 +18,7 @@ This document provides the functional specifications for the Wind Power Plant St
 
 **Powerplant**: A wind power installation consisting of multiple wind turbines at a specific location. Each powerplant has a unique identifier and name.
 
-**Part**: A physical component of a wind turbine (e.g., rotor blades, gearbox, generator, tower, nacelle). Each part has associated checkups.
+**Part**: A physical component of a wind turbine (rotor blades, gearbox, generator, tower, nacelle). Each part has associated checkups.
 
 **Checkup**: A specific inspection point or test procedure for a wind turbine part. Each checkup must be evaluated and assigned a status during project execution.
 

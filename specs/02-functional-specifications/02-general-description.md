@@ -96,9 +96,9 @@ The application follows a project-based workflow model:
 - Web-based application (browser compatibility: Chrome, Firefox, Safari, Edge latest 2 versions)
 - Responsive design for mobile and desktop devices
 - Database: PostgreSQL (standard relational database for structured data)
-- PDF generation: Server-side generation using library (e.g., PDFKit, jsPDF, or similar)
+- PDF generation: Server-side generation using PDFKit library
 - Image storage: Database BLOB storage or file system with database references
-- Authentication: Secure password hashing (bcrypt or similar)
+- Authentication: Secure password hashing using bcrypt algorithm
 - Session management: Secure session tokens
 
 **Performance Constraints:**
