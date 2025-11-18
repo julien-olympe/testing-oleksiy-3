@@ -2,17 +2,21 @@
 
 ```yaml
 - generic [ref=e3]:
-  - heading "Login" [level=2] [ref=e4]
-  - generic [ref=e5]:
+  - banner [ref=e4]:
+    - heading "Wind Power Plant Investigation" [level=1] [ref=e5]
     - generic [ref=e6]:
-      - generic [ref=e7]: Username or Email
-      - textbox "Username or Email" [ref=e8]
-    - generic [ref=e9]:
-      - generic [ref=e10]: Password
-      - textbox "Password" [ref=e11]
-    - button "Login" [ref=e12] [cursor=pointer]
-  - paragraph [ref=e13]:
-    - text: Don't have an account?
-    - link "Register" [ref=e14] [cursor=pointer]:
-      - /url: /register
+      - generic [ref=e7]: test_user_critical_1763455963852
+      - button "Logout" [ref=e8] [cursor=pointer]
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - heading "Start New Project" [level=2] [ref=e12]
+        - button "Back" [ref=e13] [cursor=pointer]
+      - generic [ref=e14]:
+        - generic [ref=e15]: Select Powerplant
+        - combobox "Select Powerplant" [ref=e16]:
+          - option "-- Select a powerplant --" [selected]
+      - button "Create Project" [disabled] [ref=e17]
+  - contentinfo [ref=e18]:
+    - paragraph [ref=e19]: Version 1.0.0
 ```

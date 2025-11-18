@@ -39,8 +39,10 @@ async function start() {
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax', // Use 'lax' in development to allow cross-origin
       maxAge: 86400, // 24 hours
+      path: '/', // Ensure cookie is available for all paths
+      domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost', // Set domain for localhost in development
     },
   });
 

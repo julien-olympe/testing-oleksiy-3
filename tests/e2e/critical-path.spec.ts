@@ -92,17 +92,129 @@ test.describe('Critical Path - Complete User Journey', () => {
     await page.fill('input[name="password"], input[type="password"]', testData.password);
 
     // Step 6: Submit login
+    // Set up response listeners before making requests
+    const allProjectsResponses: any[] = [];
+    page.on('response', (response) => {
+      if (response.url().includes('/api/projects')) {
+        allProjectsResponses.push({
+          url: response.url(),
+          status: response.status(),
+          statusText: response.statusText(),
+        });
+      }
+    });
+    
+    // Wait for login API call to complete
+    const loginResponsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/auth/login') && response.status() !== 0,
+      { timeout: 10000 }
+    ).catch(() => null);
+    
+    // Set up projects API response listener before navigation
+    const projectsResponsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/projects') && response.status() !== 0,
+      { timeout: 15000 }
+    ).catch(() => null);
+    
     await page.click('button:has-text("Login"), button[type="submit"]');
-    await expect(page).toHaveURL(/.*home/i, { timeout: 5000 });
+    
+    // Wait for login API response
+    const loginResponse = await loginResponsePromise;
+    if (loginResponse && !loginResponse.ok()) {
+      const errorData = await loginResponse.json().catch(() => ({}));
+      throw new Error(`Login API failed: ${loginResponse.status()} - ${JSON.stringify(errorData)}`);
+    }
+    
+    // Check if session cookie was set
+    await page.waitForTimeout(500); // Give time for cookie to be set
+    const cookies = await page.context().cookies();
+    const sessionCookie = cookies.find(c => c.name.includes('session') || c.name.includes('sid'));
+    if (!sessionCookie) {
+      throw new Error(`Session cookie not set after login. Cookies: ${cookies.map(c => c.name).join(', ')}`);
+    }
+    
+    // Log cookie details for debugging
+    console.log('Session cookie details:', {
+      name: sessionCookie.name,
+      domain: sessionCookie.domain,
+      path: sessionCookie.path,
+      sameSite: sessionCookie.sameSite,
+      httpOnly: sessionCookie.httpOnly,
+    });
+    
+    // Verify we're redirected to home
+    await expect(page).toHaveURL(/.*home/i, { timeout: 10000 });
+    
+    // Wait for navigation and give time for cookie to be available
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Extra wait for cookie to be fully available
+    
+    // Double-check URL after waiting
+    const currentUrl = page.url();
+    if (currentUrl.includes('/login')) {
+      await page.waitForTimeout(1000); // Wait for any pending API calls
+      throw new Error(`Still on login page after login. URL: ${currentUrl}. Session cookie: ${sessionCookie.name}. Projects API responses: ${JSON.stringify(allProjectsResponses)}`);
+    }
 
     // Phase 3: Start New Project (Steps 7-8)
     // Step 7: Verify Home screen
-    await page.waitForLoadState('networkidle');
+    // Wait for projects API call to complete (it's called when HomePage loads)
+    const projectsResponse = await projectsResponsePromise;
+    if (projectsResponse) {
+      if (!projectsResponse.ok()) {
+        const errorData = await projectsResponse.json().catch(() => ({}));
+        // Check cookies that were sent with the request
+        const requestHeaders = projectsResponse.request().headers();
+        throw new Error(`Projects API failed: ${projectsResponse.status()} - ${JSON.stringify(errorData)}. Request had cookie: ${requestHeaders['cookie'] ? 'yes' : 'no'}`);
+      }
+    } else {
+      // API call might not have happened - check if we're still on login
+      const currentUrl = page.url();
+      if (currentUrl.includes('/login')) {
+        throw new Error(`Projects API was not called - still on login page. URL: ${currentUrl}`);
+      }
+    }
+    
     // Wait for loading to complete (wait for "Loading projects..." to disappear)
     await page.waitForSelector('text=Loading projects...', { state: 'hidden', timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('networkidle');
+    
+    // Check for error messages on the page
+    const errorElement = page.locator('[style*="background-color: #fee"], [style*="color: #c33"]');
+    if (await errorElement.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const errorText = await errorElement.textContent();
+      throw new Error(`Home page error: ${errorText}`);
+    }
+    
     await expect(page.locator('text=/my projects/i').or(page.locator('text=/projects/i')).or(page.locator('h2')).first()).toBeVisible({ timeout: 10000 });
-    const startProjectButton = page.locator('button:has-text("Start Project")');
-    await expect(startProjectButton).toBeVisible({ timeout: 10000 });
+    
+    // Debug: Check what buttons are on the page and current URL
+    const pageUrl = page.url();
+    const allButtons = await page.locator('button').all();
+    const buttonTexts = await Promise.all(allButtons.map(btn => btn.textContent().catch(() => '')));
+    
+    // If we're still on login page, that's the problem
+    if (pageUrl.includes('/login') || buttonTexts.includes('Login')) {
+      // Check cookies again
+      const cookies = await page.context().cookies();
+      const sessionCookie = cookies.find(c => c.name.includes('session') || c.name.includes('sid'));
+      throw new Error(`Still on login page. URL: ${pageUrl}, Buttons: ${buttonTexts.join(', ')}, Session cookie: ${sessionCookie ? sessionCookie.name : 'missing'}`);
+    }
+    
+    // Try multiple selectors for the Start Project button
+    const startProjectButton = page.locator('button:has-text("Start Project")')
+      .or(page.locator('button').filter({ hasText: 'Start Project' }))
+      .or(page.locator('[role="button"]').filter({ hasText: 'Start Project' }));
+    
+    // Check if button exists (even if not visible)
+    const buttonCount = await startProjectButton.count();
+    if (buttonCount === 0) {
+      // Take a screenshot for debugging
+      await page.screenshot({ path: '/tmp/home-page-debug.png' });
+      throw new Error(`Start Project button not found. URL: ${pageUrl}, Buttons on page: ${buttonTexts.join(', ')}`);
+    }
+    
+    await expect(startProjectButton.first()).toBeVisible({ timeout: 10000 });
 
     // Step 8: Navigate to Start Project screen
     await startProjectButton.click();
@@ -110,10 +222,48 @@ test.describe('Critical Path - Complete User Journey', () => {
 
     // Phase 4: Select Powerplant (Step 9)
     // Step 9: Select powerplant
-    const powerplantSelect = page.locator('select[name="powerplantId"], select, [role="combobox"]').first();
+    // Wait for powerplants API call
+    const powerplantsResponsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/powerplants') && response.status() !== 0,
+      { timeout: 10000 }
+    ).catch(() => null);
+    
+    const powerplantSelect = page.locator('select#powerplant, select[name="powerplantId"], select').first();
     await expect(powerplantSelect).toBeVisible({ timeout: 10000 });
-    await powerplantSelect.selectOption({ index: 0 }); // Select first powerplant
-    await page.waitForTimeout(1000); // Wait for parts/checkups to load
+    
+    // Wait for powerplants API response
+    const powerplantsResponse = await powerplantsResponsePromise;
+    if (powerplantsResponse && !powerplantsResponse.ok()) {
+      const errorData = await powerplantsResponse.json().catch(() => ({}));
+      throw new Error(`Powerplants API failed: ${powerplantsResponse.status()} - ${JSON.stringify(errorData)}`);
+    }
+    
+    // Wait for powerplants to load (check that there are options beyond the default empty one)
+    try {
+      await page.waitForFunction(
+        (select) => {
+          const sel = select as HTMLSelectElement;
+          return sel.options.length > 1;
+        },
+        await powerplantSelect.elementHandle(),
+        { timeout: 10000 }
+      );
+    } catch (error) {
+      // Check if there's an error message
+      const errorElement = page.locator('[style*="background-color: #fee"], [style*="color: #c33"]');
+      if (await errorElement.isVisible({ timeout: 2000 }).catch(() => false)) {
+        const errorText = await errorElement.textContent();
+        throw new Error(`Powerplants failed to load: ${errorText}`);
+      }
+      throw new Error(`No powerplants available in database. Powerplants API status: ${powerplantsResponse?.status() || 'not called'}`);
+    }
+    
+    // Select first actual powerplant (index 1, since index 0 is the empty option)
+    await powerplantSelect.selectOption({ index: 1 });
+    
+    // Wait for parts/checkups to load (check for parts section to appear)
+    await page.waitForSelector('text=/Parts and Checkups/i', { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(500); // Additional wait for state updates
 
     // Phase 5: Create Project (Steps 10-11)
     // Step 10: Create project
