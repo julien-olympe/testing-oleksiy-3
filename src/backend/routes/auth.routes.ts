@@ -56,7 +56,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       // Create session
       const sessionToken = generateSessionToken();
-      await fastify.sessionStore.set(sessionToken, {
+      await (fastify as any).sessionStore.set(sessionToken, {
         userId: user.id,
         username: user.username,
       });
@@ -101,7 +101,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     const sessionId = request.cookies.session;
     if (sessionId) {
-      await fastify.sessionStore.destroy(sessionId);
+      await (fastify as any).sessionStore.destroy(sessionId);
       logger.info('User logged out', {
         sessionId,
       });

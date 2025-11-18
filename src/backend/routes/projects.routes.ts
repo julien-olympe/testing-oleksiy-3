@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { AuthenticatedRequest } from '../types';
 import { createProjectSchema, uuidParamSchema, checkupStatusParamSchema, updateCheckupStatusSchema } from '../validation/schemas';
 import { projectService } from '../services/project.service';
@@ -10,32 +10,34 @@ import { logger } from '../utils/logger';
 
 export async function projectsRoutes(fastify: FastifyInstance) {
   // List projects
-  fastify.get('/api/projects', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/api/projects', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
     setSecurityHeaders(reply);
+    const authRequest = request as unknown as AuthenticatedRequest;
 
     try {
-      const projects = await projectService.getUserProjects(request.session.userId);
+      const projects = await projectService.getUserProjects(authRequest.session.userId);
       sendSuccess(reply, projects, 200, projects.length);
     } catch (error) {
       sendError(reply, error as Error, {
-        userId: request.session.userId,
+        userId: authRequest.session.userId,
         endpoint: '/api/projects',
       });
     }
   });
 
   // Get project details
-  fastify.get('/api/projects/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/api/projects/:id', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
     setSecurityHeaders(reply);
+    const authRequest = request as unknown as AuthenticatedRequest;
 
     try {
       const { id } = uuidParamSchema.parse(request.params);
-      const project = await projectService.getProjectById(id, request.session.userId);
+      const project = await projectService.getProjectById(id, authRequest.session.userId);
       sendSuccess(reply, project);
     } catch (error) {
       if (error instanceof AppError) {
         sendError(reply, error, {
-          userId: request.session.userId,
+          userId: authRequest.session.userId,
           projectId: (request.params as { id?: string }).id,
         });
       } else if (error && typeof error === 'object' && 'issues' in error) {
@@ -47,7 +49,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
         sendError(reply, new AppError(400, 'VALIDATION_ERROR', 'Validation failed', errors));
       } else {
         sendError(reply, error as Error, {
-          userId: request.session.userId,
+          userId: authRequest.session.userId,
           projectId: (request.params as { id?: string }).id,
         });
       }
@@ -55,13 +57,14 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   });
 
   // Create project
-  fastify.post('/api/projects', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.post('/api/projects', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
     setSecurityHeaders(reply);
+    const authRequest = request as unknown as AuthenticatedRequest;
 
     try {
       const validated = createProjectSchema.parse(request.body);
       const project = await projectService.createProject(
-        request.session.userId,
+        authRequest.session.userId,
         validated.powerplantId
       );
       sendSuccess(reply, project, 201);
@@ -77,7 +80,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
         sendError(reply, new AppError(400, 'VALIDATION_ERROR', 'Validation failed', errors));
       } else {
         sendError(reply, error as Error, {
-          userId: request.session.userId,
+          userId: authRequest.session.userId,
         });
       }
     }
@@ -87,8 +90,9 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   fastify.patch(
     '/api/projects/:id/checkups/:checkupId/status',
     { preHandler: authenticate },
-    async (request: AuthenticatedRequest, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       setSecurityHeaders(reply);
+      const authRequest = request as unknown as AuthenticatedRequest;
 
       try {
         const params = checkupStatusParamSchema.parse(request.params);
@@ -98,14 +102,14 @@ export async function projectsRoutes(fastify: FastifyInstance) {
           params.id,
           params.checkupId,
           body.status,
-          request.session.userId
+          authRequest.session.userId
         );
 
         sendSuccess(reply, result);
       } catch (error) {
         if (error instanceof AppError) {
           sendError(reply, error, {
-            userId: request.session.userId,
+            userId: authRequest.session.userId,
             projectId: (request.params as { id?: string }).id,
             checkupId: (request.params as { checkupId?: string }).checkupId,
           });
@@ -118,7 +122,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
           sendError(reply, new AppError(400, 'VALIDATION_ERROR', 'Validation failed', errors));
         } else {
           sendError(reply, error as Error, {
-            userId: request.session.userId,
+            userId: authRequest.session.userId,
           });
         }
       }
@@ -126,14 +130,15 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   );
 
   // Finish project and generate PDF
-  fastify.post('/api/projects/:id/finish', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.post('/api/projects/:id/finish', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
     setSecurityHeaders(reply);
+    const authRequest = request as unknown as AuthenticatedRequest;
 
     try {
       const { id } = uuidParamSchema.parse(request.params);
 
       // Get project data
-      const projectData = await projectService.finishProject(id, request.session.userId);
+      const projectData = await projectService.finishProject(id, authRequest.session.userId);
 
       // Generate PDF
       let pdfBuffer: Buffer;
@@ -142,7 +147,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
       } catch (pdfError) {
         logger.error('PDF generation failed', {
           projectId: id,
-          userId: request.session.userId,
+          userId: authRequest.session.userId,
         }, {
           code: 'PDF_GENERATION_ERROR',
           stack: pdfError instanceof Error ? pdfError.stack : undefined,
@@ -154,7 +159,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
       try {
         await projectService.markProjectFinished(id);
         logger.info('Project finished successfully', {
-          userId: request.session.userId,
+          userId: authRequest.session.userId,
           projectId: id,
           powerplantId: projectData.project.powerplantId,
         });
@@ -162,7 +167,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
         // Critical error - PDF generated but status not updated
         logger.error('Failed to update project status after PDF generation', {
           projectId: id,
-          userId: request.session.userId,
+          userId: authRequest.session.userId,
         }, {
           code: 'DATABASE_ERROR',
           stack: dbError instanceof Error ? dbError.stack : undefined,
@@ -182,7 +187,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
     } catch (error) {
       if (error instanceof AppError) {
         sendError(reply, error, {
-          userId: request.session.userId,
+          userId: authRequest.session.userId,
           projectId: (request.params as { id?: string }).id,
         });
       } else if (error && typeof error === 'object' && 'issues' in error) {
@@ -194,7 +199,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
         sendError(reply, new AppError(400, 'VALIDATION_ERROR', 'Validation failed', errors));
       } else {
         sendError(reply, error as Error, {
-          userId: request.session.userId,
+          userId: authRequest.session.userId,
           projectId: (request.params as { id?: string }).id,
         });
       }

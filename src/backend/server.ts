@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { FastifyRequest } from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import fastifyCors from '@fastify/cors';
@@ -51,9 +51,22 @@ async function start() {
     skipOnError: false,
   });
 
-  // Security headers on all responses
-  fastify.addHook('onSend', async (request, reply) => {
+  // Security headers and response logging on all responses
+  fastify.addHook('onSend', async (request: FastifyRequest & { startTime?: number }, reply) => {
     setSecurityHeaders(reply);
+    
+    // Log request completion
+    if (request.startTime) {
+      const duration = Date.now() - request.startTime;
+      const { logger } = await import('./utils/logger');
+      logger.debug('Request completed', {
+        method: request.method,
+        url: request.url,
+        statusCode: reply.statusCode,
+        duration: `${duration}ms`,
+        ipAddress: request.ip,
+      });
+    }
   });
 
   // Request logging

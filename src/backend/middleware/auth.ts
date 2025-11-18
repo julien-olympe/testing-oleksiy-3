@@ -14,14 +14,14 @@ export async function authenticate(
   }
 
   try {
-    const session = await request.server.sessionStore.get(sessionId);
+    const session = await (request.server as any).sessionStore.get(sessionId);
 
     if (!session || !session.userId) {
       throw new AppError(401, 'AUTHENTICATION_ERROR', 'Session expired or invalid. Please login again.');
     }
 
-    // Attach session data to request
-    (request as AuthenticatedRequest).session = {
+    // Attach session data to request (using type assertion)
+    (request as any).session = {
       userId: session.userId,
       username: session.username,
     };

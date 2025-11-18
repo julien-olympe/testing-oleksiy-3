@@ -5,7 +5,8 @@ export interface SessionData {
   username: string;
 }
 
-export interface AuthenticatedRequest extends FastifyRequest {
+// Use type assertion helper instead of extending FastifyRequest
+export type AuthenticatedRequest = FastifyRequest & {
   session: SessionData;
 }
 
