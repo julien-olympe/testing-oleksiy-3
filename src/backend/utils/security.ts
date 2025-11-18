@@ -5,6 +5,10 @@ export function generateSessionToken(): string {
 }
 
 export function setSecurityHeaders(reply: any): void {
+  // Only set headers if response hasn't been sent
+  if (reply.sent || reply.raw.headersSent) {
+    return;
+  }
   reply.header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'");
   reply.header('X-Content-Type-Options', 'nosniff');
   reply.header('X-Frame-Options', 'DENY');
