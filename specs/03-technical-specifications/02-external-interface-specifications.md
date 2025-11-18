@@ -156,10 +156,10 @@
 The application follows a single-page application (SPA) architecture with React Router for navigation. The interface consists of the following screens:
 
 **Login Screen**
-- Layout: Centered form with email and password fields
-- Elements: Email input, password input, "Login" button, "Register" link
+- Layout: Centered form with username and password fields
+- Elements: Username input, password input, "Login" button, "Register" link
 - Format: Clean, minimal design with validation error messages displayed below inputs
-- Error Messages: "Invalid email or password" for authentication failures, field-specific validation errors
+- Error Messages: "Invalid username or password" for authentication failures, field-specific validation errors
 
 **Home Screen**
 - Layout: Header with user email and logout button, main content area with project list
@@ -183,7 +183,7 @@ The application follows a single-page application (SPA) architecture with React 
 - Layout: Three-column layout
   - Left: Powerplant name header
   - Middle: Parts list with expandable checkups, status indicators
-  - Right: Documentation panel showing files for selected checkup
+  - Right: Documentation panel showing files for selected part
 - Elements:
   - Powerplant name display at top
   - Parts list (expandable/collapsible sections)
@@ -199,9 +199,9 @@ The application follows a single-page application (SPA) architecture with React 
 **Registration and Login**
 1. User navigates to login screen
 2. User clicks "Register" link
-3. User enters email and password, submits form
+3. User enters username, email and password, submits form
 4. System creates account and redirects to login
-5. User enters credentials and logs in
+5. User enters username and password and logs in
 6. System validates credentials and redirects to home screen
 
 **Creating a Project**

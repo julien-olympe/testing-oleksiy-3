@@ -17,9 +17,9 @@
 **Documentation Files**
 - Maximum file size per upload: 10 MB
 - Supported file types: JPEG, PNG, GIF, PDF
-- Maximum number of files per checkup: 20 files
+- Maximum number of files per part: 20 files
 - Maximum total storage per project: 500 MB
-- File storage location: Local filesystem with organized directory structure (project_id/checkup_id/filename)
+- File storage location: Local filesystem with organized directory structure (project_id/part_id/filename)
 
 **File Upload Performance**
 - Small files (< 1 MB): Upload and processing completed within 2 seconds
