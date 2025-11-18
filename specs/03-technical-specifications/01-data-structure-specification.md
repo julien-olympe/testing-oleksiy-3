@@ -10,7 +10,7 @@ This document describes the data model for the Wind Power Plant Status Investiga
 
 **Purpose and Essence**
 
-The User entity represents an authenticated user of the application. Users can register, login, and manage their own projects. Each user has a unique identifier and authentication credentials.
+The User entity represents an authenticated user of the application. Users can register, login, and manage their own projects. Each user has a unique identifier and authentication credentials. Both username and email are used for authentication.
 
 **Attributes**
 - `id` (UUID, Primary Key): Unique identifier for the user
