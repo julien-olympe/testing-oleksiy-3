@@ -19,14 +19,16 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'npm run dev:backend',
+      command: 'npm run build:backend && node dist/backend/server.js',
       port: 3001,
       reuseExistingServer: !process.env.CI,
+      timeout: 120000,
     },
     {
       command: 'npm run dev:frontend',
       port: 3000,
       reuseExistingServer: !process.env.CI,
+      timeout: 120000,
     },
   ],
 });

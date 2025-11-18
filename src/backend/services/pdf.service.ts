@@ -1,10 +1,47 @@
 import PDFDocument from 'pdfkit';
 import sharp from 'sharp';
-import { Project, Part, Checkup, CheckupStatus } from '@prisma/client';
 
+// Define types based on Prisma schema structure
 interface ProjectData {
-  project: Project & { user: { username: string }; powerplant: { name: string; location: string | null } };
-  parts: Array<Part & { checkups: Array<Checkup & { checkupStatuses: CheckupStatus[] }> }>;
+  project: {
+    id: string;
+    userId: string;
+    powerplantId: string;
+    status: string;
+    createdAt: Date;
+    finishedAt: Date | null;
+    updatedAt: Date;
+    user: { username: string };
+    powerplant: { name: string; location: string | null };
+  };
+  parts: Array<{
+    id: string;
+    powerplantId: string;
+    name: string;
+    description: string | null;
+    displayOrder: number;
+    createdAt: Date;
+    updatedAt: Date;
+    checkups: Array<{
+      id: string;
+      partId: string;
+      name: string;
+      description: string | null;
+      documentationImages: Buffer[];
+      documentationText: string | null;
+      displayOrder: number;
+      createdAt: Date;
+      updatedAt: Date;
+      checkupStatuses: Array<{
+        id: string;
+        projectId: string;
+        checkupId: string;
+        statusValue: string;
+        createdAt: Date;
+        updatedAt: Date;
+      }>;
+    }>;
+  }>;
 }
 
 export class PdfService {
@@ -91,7 +128,7 @@ export class PdfService {
         const totalParts = projectData.parts.length;
         const totalCheckups = projectData.parts.reduce((sum, part) => sum + part.checkups.length, 0);
         const checkupsWithStatus = projectData.parts.reduce(
-          (sum, part) => sum + part.checkups.filter((c: Checkup & { checkupStatuses: CheckupStatus[] }) => c.checkupStatuses.length > 0).length,
+          (sum, part) => sum + part.checkups.filter((c) => c.checkupStatuses.length > 0).length,
           0
         );
 
