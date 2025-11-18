@@ -1,0 +1,16 @@
+{
+  "name": "wind-power-plant-status-investigation",
+  "version": "1.0.0",
+  "description": "Wind Power Plant Status Investigation Application",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start:backend": "cd backend && npm start",
+    "migrate": "cd backend && npm run migrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
