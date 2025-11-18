@@ -9,8 +9,6 @@ import { logger } from '../utils/logger';
 export async function authRoutes(fastify: FastifyInstance) {
   // Register
   fastify.post('/api/auth/register', async (request: FastifyRequest, reply: FastifyReply) => {
-    setSecurityHeaders(reply);
-
     try {
       const validated = registerSchema.parse(request.body);
       const user = await userService.createUser(
@@ -18,6 +16,23 @@ export async function authRoutes(fastify: FastifyInstance) {
         validated.email,
         validated.password
       );
+
+      // Create session (auto-login after registration)
+      const sessionToken = generateSessionToken();
+      await (fastify as any).sessionStore.set(sessionToken, {
+        userId: user.id,
+        username: user.username,
+      });
+
+      // Set cookie
+      const isProduction = process.env.NODE_ENV === 'production';
+      reply.setCookie('session', sessionToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 86400, // 24 hours
+      });
 
       sendSuccess(reply, user, 201);
     } catch (error) {
