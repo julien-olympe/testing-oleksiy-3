@@ -16,13 +16,12 @@ class ApiClient {
     });
 
     // Response interceptor for error handling
+    // Note: We don't redirect here to avoid navigation loops
+    // ProtectedRoute and useAuth handle authentication redirects
     this.client.interceptors.response.use(
       (response) => response,
       (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Redirect to login on authentication error
-          window.location.href = '/login';
-        }
+        // Just reject the error, let React Router handle redirects
         return Promise.reject(error);
       }
     );
