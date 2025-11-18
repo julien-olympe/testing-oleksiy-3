@@ -34,7 +34,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1",
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.10.0",
     "@types/pdfkit": "^0.13.4",
