@@ -1,9 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { pool } from '../utils/db';
 import { setSecurityHeaders } from '../utils/security';
 import { logger } from '../utils/logger';
-
-const prisma = new PrismaClient();
 
 export async function healthRoutes(fastify: FastifyInstance) {
   fastify.get('/api/health', async (request, reply) => {
@@ -11,7 +9,7 @@ export async function healthRoutes(fastify: FastifyInstance) {
 
     try {
       // Check database connection
-      await prisma.$queryRaw`SELECT 1`;
+      await pool.query('SELECT 1');
 
       reply.send({
         status: 'healthy',

@@ -1,13 +1,12 @@
 import { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
 
-// Mock Prisma Client before importing health routes
-const mockQueryRaw = jest.fn();
-jest.mock('@prisma/client', () => {
+// Mock pg Pool before importing health routes
+const mockQuery = jest.fn();
+jest.mock('../../src/backend/utils/db', () => {
   return {
-    PrismaClient: jest.fn().mockImplementation(() => ({
-      $queryRaw: mockQueryRaw,
-    })),
+    pool: {
+      query: mockQuery,
+    },
   };
 });
 
@@ -46,7 +45,7 @@ describe('Health Check', () => {
   describe('Health Check Endpoint', () => {
     test('should return healthy status from health endpoint', async () => {
       // Mock successful database query
-      mockQueryRaw.mockResolvedValue([{ result: 1 }]);
+      mockQuery.mockResolvedValue({ rows: [{ result: 1 }] });
 
       const response = await fastify.inject({
         method: 'GET',
@@ -64,14 +63,14 @@ describe('Health Check', () => {
     });
 
     test('should verify database connection in health check', async () => {
-      mockQueryRaw.mockResolvedValue([{ result: 1 }]);
+      mockQuery.mockResolvedValue({ rows: [{ result: 1 }] });
 
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/health',
       });
 
-      expect(mockQueryRaw).toHaveBeenCalled();
+      expect(mockQuery).toHaveBeenCalled();
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.database).toBe('connected');
@@ -79,14 +78,14 @@ describe('Health Check', () => {
 
     test('should handle database connection failure in health check', async () => {
       // Mock database connection failure
-      mockQueryRaw.mockRejectedValue(new Error('Connection failed'));
+      mockQuery.mockRejectedValue(new Error('Connection failed'));
 
       const response = await fastify.inject({
         method: 'GET',
         url: '/api/health',
       });
 
-      expect(mockQueryRaw).toHaveBeenCalled();
+      expect(mockQuery).toHaveBeenCalled();
       expect(response.statusCode).toBe(503);
       const body = JSON.parse(response.body);
       expect(body).toMatchObject({

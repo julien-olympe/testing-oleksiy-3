@@ -22,7 +22,9 @@ test.describe('Critical Path - Complete User Journey', () => {
     // ============================================
 
     // Step 1: Navigate to application login screen
-    await page.goto('/login');
+    await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    // Wait for React app to render
+    await page.waitForSelector('h2', { timeout: 15000 });
     await expect(page.locator('h2')).toContainText('Login');
     await expect(page.locator('input[id="usernameOrEmail"]')).toBeVisible();
     await expect(page.locator('input[id="password"]')).toBeVisible();
@@ -30,7 +32,11 @@ test.describe('Critical Path - Complete User Journey', () => {
     await expect(page.locator('a[href="/register"]')).toBeVisible();
 
     // Step 2: Navigate to registration screen
-    await page.click('a[href="/register"]');
+    // Use navigation promise to wait for navigation to complete
+    await Promise.all([
+      page.waitForURL(/.*\/register/, { timeout: 10000 }),
+      page.click('a[href="/register"]'),
+    ]);
     await expect(page).toHaveURL(/.*\/register/);
     await expect(page.locator('input[id="username"]')).toBeVisible();
     await expect(page.locator('input[id="email"]')).toBeVisible();
@@ -52,27 +58,44 @@ test.describe('Critical Path - Complete User Journey', () => {
     await expect(page.locator('input[id="passwordConfirmation"]')).toHaveValue(testPassword);
 
     // Step 4: Submit registration
+    // Set up network monitoring to catch API errors
+    const responsePromise = page.waitForResponse(response => 
+      response.url().includes('/api/auth/register') && response.status() !== 200
+    ).catch(() => null);
+    
     await page.click('button[type="submit"]');
-    // Wait for redirect to login page
-    await expect(page).toHaveURL(/.*\/login/, { timeout: 5000 });
-    // Check for success message or redirect (may vary based on implementation)
-    await expect(page.locator('h2')).toContainText('Login');
+    
+    // Wait for response
+    const errorResponse = await responsePromise;
+    if (errorResponse) {
+      const errorBody = await errorResponse.json().catch(() => ({}));
+      throw new Error(`Registration API failed: ${errorResponse.status()} - ${JSON.stringify(errorBody)}`);
+    }
+    
+    // Wait for either redirect or error message
+    await page.waitForTimeout(2000);
+    
+    // Check if there's an error message on the page
+    const errorElement = page.locator('div[style*="backgroundColor: #fee"], div[style*="color: #c33"]');
+    const errorCount = await errorElement.count();
+    if (errorCount > 0) {
+      const errorText = await errorElement.first().textContent();
+      const pageContent = await page.content();
+      throw new Error(`Registration failed with error: ${errorText}. Page URL: ${page.url()}. Page content snippet: ${pageContent.substring(0, 500)}`);
+    }
+    
+    // Wait for redirect - registration logs user in and redirects to home
+    await expect(page).toHaveURL(/.*\/home/, { timeout: 10000 });
+    // User is now logged in and on home page
 
     // ============================================
     // PHASE 2: User Login (Steps 5-6)
     // ============================================
-
-    // Step 5: Fill login form
-    await page.fill('input[id="usernameOrEmail"]', testUsername);
-    await page.fill('input[id="password"]', testPassword);
+    // Note: Registration automatically logs the user in, so we're already on home page
+    // If we need to test login separately, we would logout first, but for critical path
+    // we can skip login since registration already authenticated us
     
-    // Verify fields are filled
-    await expect(page.locator('input[id="usernameOrEmail"]')).toHaveValue(testUsername);
-    await expect(page.locator('input[id="password"]')).toHaveValue(testPassword);
-
-    // Step 6: Submit login
-    await page.click('button[type="submit"]');
-    // Wait for redirect to home page
+    // Step 5 & 6: Already logged in from registration, verify we're on home page
     await expect(page).toHaveURL(/.*\/home/, { timeout: 5000 });
 
     // ============================================

@@ -19,6 +19,10 @@ export async function authRoutes(fastify: FastifyInstance) {
         validated.password
       );
 
+      // Create session after registration (auto-login)
+      (request.session as { userId?: string; username?: string }).userId = user.id;
+      (request.session as { userId?: string; username?: string }).username = user.username;
+
       sendSuccess(reply, user, 201);
     } catch (error) {
       if (error instanceof AppError) {

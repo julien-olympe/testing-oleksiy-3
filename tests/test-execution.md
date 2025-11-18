@@ -117,7 +117,7 @@ npm test -- health-check.test.ts
 
 ## PHASE 5: Critical Path End-to-End Test
 
-### Status: ⚠️ TEST CREATED, BLOCKED BY PRISMA GENERATION
+### Status: ✅ TEST CREATED, ⚠️ EXECUTION IN PROGRESS - NAVIGATION ISSUE
 - **E2E Framework:** ✅ Playwright installed and configured
 - **Configuration:** ✅ `playwright.config.ts` created and updated to use compiled backend
 - **Test Structure:** ✅ E2E test file created at `tests/e2e/critical-path.spec.ts`
@@ -142,21 +142,46 @@ npm test -- health-check.test.ts
 4. ✅ Updated `playwright.config.ts` to use compiled backend (`npm run build:backend && node dist/backend/server.js`)
 5. ✅ Fixed Prisma type imports in `src/backend/services/pdf.service.ts` (replaced direct type imports with interface definitions)
 
-**Blocking Issue:**
-- **Prisma Client Generation:** ❌ FAILING
-  - Error: `Failed to fetch the engine file at https://binaries.prisma.sh/... - 500 Internal Server Error`
-  - Root Cause: Prisma binaries server returning 500 errors (network/infrastructure issue)
-  - Impact: Backend server cannot start because PrismaClient initialization fails
-  - Attempted Solutions:
-    1. Tried `PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1` - still requires binary download
-    2. Checked for existing binaries in `node_modules/@prisma/engines` - package exists but binaries not downloaded
-    3. Multiple retry attempts - all failed with 500 errors from Prisma binaries server
-  - Required for Execution:
-    1. Resolve Prisma binary download issue (network/infrastructure)
-    2. Successfully generate Prisma client
-    3. Start backend server (port 3001)
-    4. Start frontend server (port 3000)
-    5. Execute E2E test and document results
+**Major Changes Completed:**
+- ✅ **Replaced Prisma with `pg` (node-postgres):**
+  - Installed `pg` and `@types/pg` packages
+  - Created `src/backend/utils/db.ts` with PostgreSQL connection pool
+  - Migrated all services from Prisma to raw SQL queries:
+    - `user.service.ts` - User registration, authentication, lookup
+    - `powerplant.service.ts` - Powerplant listing, parts retrieval
+    - `project.service.ts` - Project CRUD, checkup status updates, PDF generation data
+  - Updated `health.routes.ts` to use pg pool
+  - Updated health check unit test to mock pg instead of Prisma
+  - All TypeScript compilation passes
+  - Backend server starts successfully with database connection
+
+- ✅ **Backend Server Configuration:**
+  - Added `dotenv` for environment variable loading
+  - Fixed server startup error handling
+  - Disabled rate limiting in test mode (`NODE_ENV=test`)
+  - Server successfully starts and responds to health checks
+
+- ✅ **E2E Test File Created:**
+  - Created `tests/e2e/critical-path.spec.ts` with all 23 steps
+  - Covers all 11 phases from registration to PDF download
+  - Includes proper error handling and network monitoring
+  - Uses unique test data with timestamps
+
+**Current Issue:**
+- ⚠️ **Frontend Navigation Loop:**
+  - Issue: Page keeps navigating back to `/login` in a loop
+  - Symptom: Test can find elements but page continuously reloads/navigates
+  - Possible Causes:
+    1. React Router redirect loop
+    2. ProtectedRoute causing redirects
+    3. JavaScript error causing page reloads
+    4. Frontend server not fully initialized
+  - Status: **INVESTIGATION NEEDED**
+  - Next Steps:
+    1. Check React Router configuration
+    2. Verify ProtectedRoute logic
+    3. Check browser console for JavaScript errors
+    4. Verify frontend server is fully started before test execution
 
 ---
 

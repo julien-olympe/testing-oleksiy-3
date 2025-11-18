@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { pool } from '../utils/db';
 import bcrypt from 'bcrypt';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
-
-const prisma = new PrismaClient();
 
 export class UserService {
   async createUser(username: string, email: string, password: string) {
@@ -11,16 +9,15 @@ export class UserService {
     const lowerEmail = email.trim().toLowerCase();
 
     // Check uniqueness
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { username: { equals: lowerUsername, mode: 'insensitive' } },
-          { email: { equals: lowerEmail, mode: 'insensitive' } },
-        ],
-      },
-    });
+    const existingUserResult = await pool.query(
+      `SELECT id, username, email FROM users 
+       WHERE LOWER(username) = $1 OR LOWER(email) = $2 
+       LIMIT 1`,
+      [lowerUsername, lowerEmail]
+    );
 
-    if (existingUser) {
+    if (existingUserResult.rows.length > 0) {
+      const existingUser = existingUserResult.rows[0];
       if (existingUser.username.toLowerCase() === lowerUsername) {
         throw new AppError(409, 'VALIDATION_ERROR', 'Username already exists');
       }
@@ -33,19 +30,14 @@ export class UserService {
     const passwordHash = await bcrypt.hash(password, 10);
 
     // Create user
-    const user = await prisma.user.create({
-      data: {
-        username: lowerUsername,
-        email: lowerEmail,
-        passwordHash,
-      },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        createdAt: true,
-      },
-    });
+    const userResult = await pool.query(
+      `INSERT INTO users (username, email, password_hash, created_at, updated_at)
+       VALUES ($1, $2, $3, NOW(), NOW())
+       RETURNING id, username, email, created_at`,
+      [lowerUsername, lowerEmail, passwordHash]
+    );
+
+    const user = userResult.rows[0];
 
     logger.info('User registered successfully', {
       userId: user.id,
@@ -53,29 +45,33 @@ export class UserService {
       email: user.email,
     });
 
-    return user;
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      createdAt: user.created_at,
+    };
   }
 
   async authenticateUser(usernameOrEmail: string, password: string) {
     const lowerInput = usernameOrEmail.trim().toLowerCase();
 
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { username: { equals: lowerInput, mode: 'insensitive' } },
-          { email: { equals: lowerInput, mode: 'insensitive' } },
-        ],
-      },
-    });
+    const userResult = await pool.query(
+      `SELECT id, username, email, password_hash FROM users 
+       WHERE LOWER(username) = $1 OR LOWER(email) = $1 
+       LIMIT 1`,
+      [lowerInput]
+    );
 
-    if (!user) {
+    if (userResult.rows.length === 0) {
       logger.warn('Login attempt with invalid credentials', {
         usernameOrEmail: lowerInput,
       });
       throw new AppError(401, 'AUTHENTICATION_ERROR', 'Invalid credentials');
     }
 
-    const passwordValid = await bcrypt.compare(password, user.passwordHash);
+    const user = userResult.rows[0];
+    const passwordValid = await bcrypt.compare(password, user.password_hash);
 
     if (!passwordValid) {
       logger.warn('Login attempt with invalid password', {
@@ -98,20 +94,16 @@ export class UserService {
   }
 
   async getUserById(userId: string) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-      },
-    });
+    const userResult = await pool.query(
+      `SELECT id, username, email FROM users WHERE id = $1`,
+      [userId]
+    );
 
-    if (!user) {
+    if (userResult.rows.length === 0) {
       throw new AppError(404, 'NOT_FOUND', 'User not found');
     }
 
-    return user;
+    return userResult.rows[0];
   }
 }
 

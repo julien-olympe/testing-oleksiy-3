@@ -1,4 +1,8 @@
 /// <reference path="./types/fastify.d.ts" />
+// Load environment variables
+import dotenv from 'dotenv';
+dotenv.config();
+
 import Fastify from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
@@ -22,8 +26,10 @@ const fastify = Fastify({
 
 // Register plugins
 async function start() {
-  // CORS
-  await fastify.register(fastifyCors, {
+  try {
+    console.log('Starting server...');
+    // CORS
+    await fastify.register(fastifyCors, {
     origin: FRONTEND_URL,
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
@@ -45,12 +51,14 @@ async function start() {
     },
   });
 
-  // Rate limiting
-  await fastify.register(fastifyRateLimit, {
-    max: 100,
-    timeWindow: '1 minute',
-    skipOnError: false,
-  });
+  // Rate limiting (disabled in test mode)
+  if (process.env.NODE_ENV !== 'test') {
+    await fastify.register(fastifyRateLimit, {
+      max: 100,
+      timeWindow: '1 minute',
+      skipOnError: false,
+    });
+  }
 
   // Security headers on all responses
   fastify.addHook('onSend', async (request, reply) => {
@@ -69,14 +77,21 @@ async function start() {
   await fastify.register(powerplantsRoutes);
   await fastify.register(healthRoutes);
 
-  // Start server
-  try {
-    await fastify.listen({ port: PORT, host: '0.0.0.0' });
-    console.log(`Server listening on port ${PORT}`);
+    // Start server
+    try {
+      await fastify.listen({ port: PORT, host: '0.0.0.0' });
+      console.log(`Server listening on port ${PORT}`);
+    } catch (err) {
+      console.error('Failed to listen:', err);
+      process.exit(1);
+    }
   } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
+    console.error('Failed to start server during initialization:', err);
+    throw err;
   }
 }
 
-start();
+start().catch((err) => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
+});
