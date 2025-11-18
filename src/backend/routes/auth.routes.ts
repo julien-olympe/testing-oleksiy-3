@@ -20,8 +20,10 @@ export async function authRoutes(fastify: FastifyInstance) {
       );
 
       // Create session after registration (auto-login)
-      (request.session as { userId?: string; username?: string }).userId = user.id;
-      (request.session as { userId?: string; username?: string }).username = user.username;
+      if (request.session) {
+        (request.session as { userId?: string; username?: string }).userId = user.id;
+        (request.session as { userId?: string; username?: string }).username = user.username;
+      }
 
       sendSuccess(reply, user, 201);
     } catch (error) {
@@ -40,6 +42,11 @@ export async function authRoutes(fastify: FastifyInstance) {
           new AppError(400, 'VALIDATION_ERROR', 'Validation failed', errors)
         );
       } else {
+        logger.error('Registration error', {
+          endpoint: '/api/auth/register',
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        });
         sendError(reply, error as Error, {
           endpoint: '/api/auth/register',
         });
@@ -59,8 +66,10 @@ export async function authRoutes(fastify: FastifyInstance) {
       );
 
       // Create session using Fastify session API
-      (request.session as { userId?: string; username?: string }).userId = user.id;
-      (request.session as { userId?: string; username?: string }).username = user.username;
+      if (request.session) {
+        (request.session as { userId?: string; username?: string }).userId = user.id;
+        (request.session as { userId?: string; username?: string }).username = user.username;
+      }
 
       sendSuccess(reply, user);
     } catch (error) {
