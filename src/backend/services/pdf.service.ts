@@ -1,10 +1,22 @@
 import PDFDocument from 'pdfkit';
 import sharp from 'sharp';
-import { Project, Part, Checkup, CheckupStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+type ProjectWithRelations = Prisma.ProjectGetPayload<{
+  include: { user: { select: { username: true } }; powerplant: { select: { name: true; location: true } } };
+}>;
+
+type PartWithCheckups = Prisma.PartGetPayload<{
+  include: {
+    checkups: {
+      include: { checkupStatuses: true };
+    };
+  };
+}>;
 
 interface ProjectData {
-  project: Project & { user: { username: string }; powerplant: { name: string; location: string | null } };
-  parts: Array<Part & { checkups: Array<Checkup & { checkupStatuses: CheckupStatus[] }> }>;
+  project: ProjectWithRelations;
+  parts: PartWithCheckups[];
 }
 
 export class PdfService {
@@ -62,7 +74,7 @@ export class PdfService {
             // Handle images - process all images first
             if (checkup.documentationImages && checkup.documentationImages.length > 0) {
               const processedImages = await Promise.all(
-                checkup.documentationImages.map((imageBuffer) => this.processImage(imageBuffer))
+                checkup.documentationImages.map((imageBuffer: Buffer) => this.processImage(imageBuffer))
               );
 
               for (const processedImage of processedImages) {
@@ -89,9 +101,9 @@ export class PdfService {
         doc.fontSize(12);
 
         const totalParts = projectData.parts.length;
-        const totalCheckups = projectData.parts.reduce((sum, part) => sum + part.checkups.length, 0);
+        const totalCheckups = projectData.parts.reduce((sum: number, part: PartWithCheckups) => sum + part.checkups.length, 0);
         const checkupsWithStatus = projectData.parts.reduce(
-          (sum, part) => sum + part.checkups.filter((c) => c.checkupStatuses.length > 0).length,
+          (sum: number, part: PartWithCheckups) => sum + part.checkups.filter((c) => c.checkupStatuses.length > 0).length,
           0
         );
 

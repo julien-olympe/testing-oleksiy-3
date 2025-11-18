@@ -1,4 +1,5 @@
 import { FastifyRequest } from 'fastify';
+import { FastifySessionObject } from '@fastify/session';
 
 export interface SessionData {
   userId: string;
@@ -6,7 +7,7 @@ export interface SessionData {
 }
 
 export interface AuthenticatedRequest extends FastifyRequest {
-  session: SessionData;
+  session: FastifySessionObject & SessionData;
 }
 
 export interface ApiError {

@@ -37,12 +37,12 @@ export class PowerplantService {
     }
 
     // Transform to match API spec
-    const parts = powerplant.parts.map((part) => ({
+    const parts = powerplant.parts.map((part: { id: string; name: string; description: string | null; displayOrder: number; checkups: Array<{ id: string; name: string; description: string | null; displayOrder: number; documentationImages: Buffer[] | null; documentationText: string | null }> }) => ({
       id: part.id,
       name: part.name,
       description: part.description,
       displayOrder: part.displayOrder,
-      checkups: part.checkups.map((checkup) => ({
+      checkups: part.checkups.map((checkup: { id: string; name: string; description: string | null; displayOrder: number; documentationImages: Buffer[] | null; documentationText: string | null }) => ({
         id: checkup.id,
         name: checkup.name,
         description: checkup.description,

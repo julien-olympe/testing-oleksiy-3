@@ -14,7 +14,12 @@ export async function authenticate(
   }
 
   try {
-    const session = await request.server.sessionStore.get(sessionId);
+    const sessionStore = (request.server as any).sessionStore;
+    if (!sessionStore) {
+      throw new AppError(500, 'SERVER_ERROR', 'Session store not available');
+    }
+
+    const session = await sessionStore.get(sessionId) as SessionData | null;
 
     if (!session || !session.userId) {
       throw new AppError(401, 'AUTHENTICATION_ERROR', 'Session expired or invalid. Please login again.');
@@ -22,9 +27,10 @@ export async function authenticate(
 
     // Attach session data to request
     (request as AuthenticatedRequest).session = {
+      ...request.session,
       userId: session.userId,
       username: session.username,
-    };
+    } as AuthenticatedRequest['session'];
   } catch (error) {
     logger.warn('Authentication failed', {
       sessionId,

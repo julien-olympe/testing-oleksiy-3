@@ -51,13 +51,27 @@ async function start() {
     skipOnError: false,
   });
 
-  // Security headers on all responses
+  // Request logging - store start time
+  fastify.addHook('onRequest', requestLogger);
+
+  // Security headers and request completion logging on all responses
   fastify.addHook('onSend', async (request, reply) => {
     setSecurityHeaders(reply);
+    
+    // Log request completion if start time was set
+    const startTime = (request as any).startTime;
+    if (startTime) {
+      const duration = Date.now() - startTime;
+      const { logger } = await import('./utils/logger');
+      logger.debug('Request completed', {
+        method: request.method,
+        url: request.url,
+        statusCode: reply.statusCode,
+        duration: `${duration}ms`,
+        ipAddress: request.ip,
+      });
+    }
   });
-
-  // Request logging
-  fastify.addHook('onRequest', requestLogger);
 
   // Error handler
   fastify.setErrorHandler(errorHandler);

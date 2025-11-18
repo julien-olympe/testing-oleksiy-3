@@ -56,10 +56,13 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       // Create session
       const sessionToken = generateSessionToken();
-      await fastify.sessionStore.set(sessionToken, {
-        userId: user.id,
-        username: user.username,
-      });
+      const sessionStore = (fastify as any).sessionStore;
+      if (sessionStore) {
+        await sessionStore.set(sessionToken, {
+          userId: user.id,
+          username: user.username,
+        });
+      }
 
       // Set cookie
       const isProduction = process.env.NODE_ENV === 'production';
@@ -101,10 +104,13 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     const sessionId = request.cookies.session;
     if (sessionId) {
-      await fastify.sessionStore.destroy(sessionId);
-      logger.info('User logged out', {
-        sessionId,
-      });
+      const sessionStore = (fastify as any).sessionStore;
+      if (sessionStore) {
+        await sessionStore.destroy(sessionId);
+        logger.info('User logged out', {
+          sessionId,
+        });
+      }
     }
 
     reply.clearCookie('session', {
