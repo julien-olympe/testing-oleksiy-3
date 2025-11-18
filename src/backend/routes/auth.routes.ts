@@ -55,8 +55,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       );
 
       // Create session using Fastify session API
-      request.session.userId = user.id;
-      request.session.username = user.username;
+      (request.session as { userId?: string; username?: string }).userId = user.id;
+      (request.session as { userId?: string; username?: string }).username = user.username;
 
       sendSuccess(reply, user);
     } catch (error) {

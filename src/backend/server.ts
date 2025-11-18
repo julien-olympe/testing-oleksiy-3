@@ -1,3 +1,4 @@
+/// <reference path="./types/fastify.d.ts" />
 import Fastify from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
