@@ -5,9 +5,10 @@ export interface SessionData {
   username: string;
 }
 
-export interface AuthenticatedRequest extends FastifyRequest {
+// Use Omit to remove the default session property, then add our custom one
+export type AuthenticatedRequest = Omit<FastifyRequest, 'session'> & {
   session: SessionData;
-}
+};
 
 export interface ApiError {
   error: string;

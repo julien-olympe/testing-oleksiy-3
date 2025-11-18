@@ -8,7 +8,7 @@ import { projectsRoutes } from './routes/projects.routes';
 import { powerplantsRoutes } from './routes/powerplants.routes';
 import { healthRoutes } from './routes/health.routes';
 import { errorHandler } from './middleware/error-handler';
-import { requestLogger } from './middleware/request-logger';
+import { requestLogger, responseLogger } from './middleware/request-logger';
 import { setSecurityHeaders } from './utils/security';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -54,6 +54,7 @@ async function start() {
   // Security headers on all responses
   fastify.addHook('onSend', async (request, reply) => {
     setSecurityHeaders(reply);
+    await responseLogger(request, reply);
   });
 
   // Request logging

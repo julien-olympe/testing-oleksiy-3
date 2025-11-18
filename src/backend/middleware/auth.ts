@@ -21,7 +21,7 @@ export async function authenticate(
     }
 
     // Attach session data to request
-    (request as AuthenticatedRequest).session = {
+    (request as unknown as AuthenticatedRequest).session = {
       userId: session.userId,
       username: session.username,
     };

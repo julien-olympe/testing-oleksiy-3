@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { AuthenticatedRequest } from '../types';
 import { uuidParamSchema } from '../validation/schemas';
 import { powerplantService } from '../services/powerplant.service';
@@ -8,23 +8,25 @@ import { authenticate } from '../middleware/auth';
 
 export async function powerplantsRoutes(fastify: FastifyInstance) {
   // List all powerplants
-  fastify.get('/api/powerplants', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/api/powerplants', { preHandler: authenticate }, async (request: FastifyRequest, reply) => {
     setSecurityHeaders(reply);
+    const authRequest = request as unknown as AuthenticatedRequest;
 
     try {
       const powerplants = await powerplantService.getAllPowerplants();
       sendSuccess(reply, powerplants);
     } catch (error) {
       sendError(reply, error as Error, {
-        userId: request.session.userId,
+        userId: authRequest.session.userId,
         endpoint: '/api/powerplants',
       });
     }
   });
 
   // Get powerplant parts and checkups
-  fastify.get('/api/powerplants/:id/parts', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/api/powerplants/:id/parts', { preHandler: authenticate }, async (request: FastifyRequest, reply) => {
     setSecurityHeaders(reply);
+    const authRequest = request as unknown as AuthenticatedRequest;
 
     try {
       const { id } = uuidParamSchema.parse(request.params);
@@ -47,7 +49,7 @@ export async function powerplantsRoutes(fastify: FastifyInstance) {
         sendError(reply, new AppError(400, 'VALIDATION_ERROR', 'Validation failed', errors));
       } else {
         sendError(reply, error as Error, {
-          userId: request.session.userId,
+          userId: authRequest.session.userId,
           powerplantId: (request.params as { id?: string }).id,
         });
       }

@@ -62,7 +62,7 @@ export class PdfService {
             // Handle images - process all images first
             if (checkup.documentationImages && checkup.documentationImages.length > 0) {
               const processedImages = await Promise.all(
-                checkup.documentationImages.map((imageBuffer) => this.processImage(imageBuffer))
+                checkup.documentationImages.map((imageBuffer: Buffer) => this.processImage(imageBuffer))
               );
 
               for (const processedImage of processedImages) {
