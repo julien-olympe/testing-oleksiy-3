@@ -52,7 +52,6 @@
 
 **Password Reset**
 - Password reset functionality not included in initial requirements
-- Future enhancement: Secure token-based password reset flow
 
 ### Access Control
 
@@ -80,7 +79,7 @@
 - File type validation: Only JPEG, PNG, GIF, PDF allowed (MIME type checking)
 - File size validation: Maximum 10 MB per file
 - Filename sanitization: Remove special characters, prevent path traversal
-- Virus scanning: Not implemented in initial version (future enhancement)
+- Virus scanning: Not implemented in initial version
 
 **File Storage Security**
 - Files stored outside web root directory
@@ -104,7 +103,6 @@
 **HTTPS Requirement**
 - All API communications over HTTPS in production
 - HTTP redirects to HTTPS
-- Secure cookie flags enabled (if cookies used in future)
 
 ---
 
@@ -205,7 +203,7 @@
 
 **Documentation**
 - Inline code comments for complex logic
-- API documentation via OpenAPI/Swagger (future enhancement)
+- API documentation via OpenAPI/Swagger not included in initial version
 - README files for setup and deployment instructions
 - Technical specifications maintained in 03-technical-specifications folder
 

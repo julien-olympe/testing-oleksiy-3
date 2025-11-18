@@ -10,10 +10,11 @@ This document describes the data model for the Wind Power Plant Status Investiga
 
 **Purpose and Essence**
 
-The User entity represents an authenticated user of the application. Users can register, login, and manage their own projects. Each user has a unique identifier and authentication credentials.
+The User entity represents an authenticated user of the application. Users can register, login, and manage their own projects. Each user has a unique identifier and authentication credentials. Both username and email are used for authentication.
 
 **Attributes**
 - `id` (UUID, Primary Key): Unique identifier for the user
+- `username` (VARCHAR(255), Unique, Not Null): User's username used for authentication
 - `email` (VARCHAR(255), Unique, Not Null): User's email address used for authentication
 - `password_hash` (VARCHAR(255), Not Null): Hashed password using bcrypt
 - `created_at` (TIMESTAMP, Not Null): Account creation timestamp
@@ -60,6 +61,7 @@ The Part entity represents a component of a wind turbine that requires inspectio
 **Relationships**
 - Many-to-One with Powerplant: A part belongs to one powerplant (cardinality: N:1)
 - One-to-Many with Checkup: A part has multiple checkups (cardinality: 1:N)
+- One-to-Many with Documentation: A part can have multiple documentation files (cardinality: 1:N)
 
 ---
 
@@ -80,7 +82,6 @@ The Checkup entity represents a specific inspection task that must be performed 
 **Relationships**
 - Many-to-One with Part: A checkup belongs to one part (cardinality: N:1)
 - One-to-Many with CheckupStatus: A checkup can have multiple statuses across different projects (cardinality: 1:N)
-- One-to-Many with Documentation: A checkup can have multiple documentation files (cardinality: 1:N)
 
 ---
 
@@ -130,11 +131,11 @@ The CheckupStatus entity represents the status of a specific checkup within a pr
 
 **Purpose and Essence**
 
-The Documentation entity represents files (images, documents) uploaded by users for specific checkups within a project. These files provide visual evidence or supporting documentation for inspection findings.
+The Documentation entity represents files (images, documents) uploaded by users for specific parts within a project. These files provide visual evidence or supporting documentation for inspection findings.
 
 **Attributes**
 - `id` (UUID, Primary Key): Unique identifier for the documentation
-- `checkup_id` (UUID, Foreign Key → Checkup.id, Not Null): Reference to the checkup this documentation relates to
+- `part_id` (UUID, Foreign Key → Part.id, Not Null): Reference to the part this documentation relates to
 - `project_id` (UUID, Foreign Key → Project.id, Not Null): Reference to the project this documentation belongs to
 - `file_path` (VARCHAR(500), Not Null): Server-side file system path where the file is stored
 - `file_type` (VARCHAR(50), Not Null): MIME type of the file (e.g., 'image/jpeg', 'image/png', 'application/pdf')
@@ -145,7 +146,7 @@ The Documentation entity represents files (images, documents) uploaded by users 
 - `updated_at` (TIMESTAMP, Not Null): Last documentation update timestamp
 
 **Relationships**
-- Many-to-One with Checkup: Documentation belongs to one checkup (cardinality: N:1)
+- Many-to-One with Part: Documentation belongs to one part (cardinality: N:1)
 - Many-to-One with Project: Documentation belongs to one project (cardinality: N:1)
 
 ---
@@ -157,7 +158,7 @@ The Documentation entity represents files (images, documents) uploaded by users 
 - **Powerplant** (1) ──< (N) **Project**
 - **Part** (1) ──< (N) **Checkup**
 - **Checkup** (1) ──< (N) **CheckupStatus**
-- **Checkup** (1) ──< (N) **Documentation**
+- **Part** (1) ──< (N) **Documentation**
 - **Project** (1) ──< (N) **CheckupStatus**
 - **Project** (1) ──< (N) **Documentation**
 
@@ -165,6 +166,6 @@ The Documentation entity represents files (images, documents) uploaded by users 
 
 - All primary keys are UUIDs for distributed system compatibility
 - Foreign keys have CASCADE DELETE where appropriate (e.g., deleting a project deletes its checkup statuses and documentation)
-- Unique constraints on User.email and (Project.id, Checkup.id) in CheckupStatus
+- Unique constraints on User.username, User.email and (Project.id, Checkup.id) in CheckupStatus
 - Indexes on foreign keys for query performance
 - Indexes on Project.user_id and Project.status for efficient user project listing
