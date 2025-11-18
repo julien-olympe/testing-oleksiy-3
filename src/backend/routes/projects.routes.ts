@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { AuthenticatedRequest } from '../types';
 import { createProjectSchema, uuidParamSchema, checkupStatusParamSchema, updateCheckupStatusSchema } from '../validation/schemas';
 import { projectService } from '../services/project.service';
@@ -10,7 +10,7 @@ import { logger } from '../utils/logger';
 
 export async function projectsRoutes(fastify: FastifyInstance) {
   // List projects
-  fastify.get('/api/projects', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/api/projects', { preHandler: authenticate }, async (request: FastifyRequest, reply) => {
     setSecurityHeaders(reply);
     const authRequest = request as unknown as AuthenticatedRequest;
 
@@ -26,7 +26,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   });
 
   // Get project details
-  fastify.get('/api/projects/:id', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/api/projects/:id', { preHandler: authenticate }, async (request: FastifyRequest, reply) => {
     setSecurityHeaders(reply);
     const authRequest = request as unknown as AuthenticatedRequest;
 
@@ -57,7 +57,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   });
 
   // Create project
-  fastify.post('/api/projects', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/api/projects', { preHandler: authenticate }, async (request: FastifyRequest, reply) => {
     setSecurityHeaders(reply);
     const authRequest = request as unknown as AuthenticatedRequest;
 
@@ -90,7 +90,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   fastify.patch(
     '/api/projects/:id/checkups/:checkupId/status',
     { preHandler: authenticate },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (request: FastifyRequest, reply) => {
       setSecurityHeaders(reply);
       const authRequest = request as unknown as AuthenticatedRequest;
 
@@ -130,7 +130,7 @@ export async function projectsRoutes(fastify: FastifyInstance) {
   );
 
   // Finish project and generate PDF
-  fastify.post('/api/projects/:id/finish', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/api/projects/:id/finish', { preHandler: authenticate }, async (request: FastifyRequest, reply) => {
     setSecurityHeaders(reply);
     const authRequest = request as unknown as AuthenticatedRequest;
 

@@ -14,12 +14,11 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "lint": "eslint . --ext .ts,.tsx",
-    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:coverage": "jest --coverage",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
   },
   "dependencies": {
     "@fastify/cookie": "^9.1.0",
@@ -38,6 +37,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
     "@playwright/test": "^1.56.1",
     "@types/bcrypt": "^5.0.2",
     "@types/jest": "^30.0.0",
@@ -55,6 +55,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "jest": "^30.2.0",
     "nodemon": "^3.0.0",
+    "playwright": "^1.56.1",
     "prettier": "^3.1.0",
     "prisma": "^5.7.0",
     "ts-jest": "^29.4.5",

@@ -10,7 +10,6 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
   },
   projects: [
     {
@@ -21,15 +20,13 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run dev:backend',
-      url: 'http://localhost:3001/api/health',
+      port: 3001,
       reuseExistingServer: !process.env.CI,
-      timeout: 120000,
     },
     {
       command: 'npm run dev:frontend',
-      url: 'http://localhost:3000',
+      port: 3000,
       reuseExistingServer: !process.env.CI,
-      timeout: 120000,
     },
   ],
 });

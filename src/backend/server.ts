@@ -1,4 +1,4 @@
-import Fastify, { FastifyRequest } from 'fastify';
+import Fastify from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import fastifyCors from '@fastify/cors';
@@ -8,7 +8,7 @@ import { projectsRoutes } from './routes/projects.routes';
 import { powerplantsRoutes } from './routes/powerplants.routes';
 import { healthRoutes } from './routes/health.routes';
 import { errorHandler } from './middleware/error-handler';
-import { requestLogger } from './middleware/request-logger';
+import { requestLogger, responseLogger } from './middleware/request-logger';
 import { setSecurityHeaders } from './utils/security';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -51,22 +51,10 @@ async function start() {
     skipOnError: false,
   });
 
-  // Security headers and response logging on all responses
-  fastify.addHook('onSend', async (request: FastifyRequest & { startTime?: number }, reply) => {
+  // Security headers on all responses
+  fastify.addHook('onSend', async (request, reply) => {
     setSecurityHeaders(reply);
-    
-    // Log request completion
-    if (request.startTime) {
-      const duration = Date.now() - request.startTime;
-      const { logger } = await import('./utils/logger');
-      logger.debug('Request completed', {
-        method: request.method,
-        url: request.url,
-        statusCode: reply.statusCode,
-        duration: `${duration}ms`,
-        ipAddress: request.ip,
-      });
-    }
+    await responseLogger(request, reply);
   });
 
   // Request logging

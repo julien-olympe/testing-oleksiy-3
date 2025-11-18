@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { AuthenticatedRequest } from '../types';
 import { uuidParamSchema } from '../validation/schemas';
 import { powerplantService } from '../services/powerplant.service';
@@ -8,7 +8,7 @@ import { authenticate } from '../middleware/auth';
 
 export async function powerplantsRoutes(fastify: FastifyInstance) {
   // List all powerplants
-  fastify.get('/api/powerplants', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/api/powerplants', { preHandler: authenticate }, async (request: FastifyRequest, reply) => {
     setSecurityHeaders(reply);
     const authRequest = request as unknown as AuthenticatedRequest;
 
@@ -24,7 +24,7 @@ export async function powerplantsRoutes(fastify: FastifyInstance) {
   });
 
   // Get powerplant parts and checkups
-  fastify.get('/api/powerplants/:id/parts', { preHandler: authenticate }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/api/powerplants/:id/parts', { preHandler: authenticate }, async (request: FastifyRequest, reply) => {
     setSecurityHeaders(reply);
     const authRequest = request as unknown as AuthenticatedRequest;
 

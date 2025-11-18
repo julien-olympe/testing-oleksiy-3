@@ -24,7 +24,7 @@ export class ProjectService {
       projectCount: projects.length,
     });
 
-    return projects.map((project: { id: string; status: string; createdAt: Date; finishedAt: Date | null; powerplant: { id: string; name: string } }) => ({
+    return projects.map((project) => ({
       id: project.id,
       powerplant: {
         id: project.powerplant.id,
@@ -70,12 +70,12 @@ export class ProjectService {
     const statusMap = new Map(checkupStatuses.map((cs: { checkupId: string; statusValue: string }) => [cs.checkupId, cs.statusValue]));
 
     // Transform data structure
-    const partsWithCheckups = parts.map((part: { id: string; name: string; description: string | null; displayOrder: number; checkups: Array<{ id: string; name: string; description: string | null; displayOrder: number; documentationImages: Buffer[] | null; documentationText: string | null }> }) => ({
+    const partsWithCheckups = parts.map((part: { id: string; name: string; description: string | null; displayOrder: number; checkups: Array<{ id: string; name: string; description: string | null; displayOrder: number; documentationImages: Buffer[]; documentationText: string | null }> }) => ({
       id: part.id,
       name: part.name,
       description: part.description,
       displayOrder: part.displayOrder,
-      checkups: part.checkups.map((checkup: { id: string; name: string; description: string | null; displayOrder: number; documentationImages: Buffer[] | null; documentationText: string | null }) => ({
+      checkups: part.checkups.map((checkup: { id: string; name: string; description: string | null; displayOrder: number; documentationImages: Buffer[]; documentationText: string | null }) => ({
         id: checkup.id,
         name: checkup.name,
         description: checkup.description,
