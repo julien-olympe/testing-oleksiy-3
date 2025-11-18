@@ -7,7 +7,8 @@ export async function requestLogger(
 ): Promise<void> {
   const startTime = Date.now();
 
-  reply.addHook('onSend', async (request, reply) => {
+  // Use reply's onSend hook directly
+  reply.raw.on('finish', () => {
     const duration = Date.now() - startTime;
 
     logger.debug('Request completed', {

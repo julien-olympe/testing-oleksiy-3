@@ -62,7 +62,7 @@ export class PdfService {
             // Handle images - process all images first
             if (checkup.documentationImages && checkup.documentationImages.length > 0) {
               const processedImages = await Promise.all(
-                checkup.documentationImages.map((imageBuffer) => this.processImage(imageBuffer))
+                checkup.documentationImages.map((imageBuffer: Buffer) => this.processImage(imageBuffer))
               );
 
               for (const processedImage of processedImages) {
@@ -91,7 +91,7 @@ export class PdfService {
         const totalParts = projectData.parts.length;
         const totalCheckups = projectData.parts.reduce((sum, part) => sum + part.checkups.length, 0);
         const checkupsWithStatus = projectData.parts.reduce(
-          (sum, part) => sum + part.checkups.filter((c) => c.checkupStatuses.length > 0).length,
+          (sum, part) => sum + part.checkups.filter((c: Checkup & { checkupStatuses: CheckupStatus[] }) => c.checkupStatuses.length > 0).length,
           0
         );
 

@@ -54,22 +54,9 @@ export async function authRoutes(fastify: FastifyInstance) {
         validated.password
       );
 
-      // Create session
-      const sessionToken = generateSessionToken();
-      await fastify.sessionStore.set(sessionToken, {
-        userId: user.id,
-        username: user.username,
-      });
-
-      // Set cookie
-      const isProduction = process.env.NODE_ENV === 'production';
-      reply.setCookie('session', sessionToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'strict',
-        path: '/',
-        maxAge: 86400, // 24 hours
-      });
+      // Create session using Fastify session API
+      request.session.userId = user.id;
+      request.session.username = user.username;
 
       sendSuccess(reply, user);
     } catch (error) {
@@ -99,11 +86,11 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.post('/api/auth/logout', async (request: FastifyRequest, reply: FastifyReply) => {
     setSecurityHeaders(reply);
 
-    const sessionId = request.cookies.session;
-    if (sessionId) {
-      await fastify.sessionStore.destroy(sessionId);
+    // Destroy session using Fastify session API
+    if (request.session) {
+      await request.session.destroy();
       logger.info('User logged out', {
-        sessionId,
+        sessionId: request.cookies.session,
       });
     }
 

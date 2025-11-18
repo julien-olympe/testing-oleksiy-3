@@ -5,9 +5,11 @@ export interface SessionData {
   username: string;
 }
 
-export interface AuthenticatedRequest extends FastifyRequest {
+// Use intersection type to override session property
+// We use Omit to remove the original session property and add our own
+export type AuthenticatedRequest = Omit<FastifyRequest, 'session'> & {
   session: SessionData;
-}
+};
 
 export interface ApiError {
   error: string;

@@ -14,16 +14,17 @@ export async function authenticate(
   }
 
   try {
-    const session = await request.server.sessionStore.get(sessionId);
+    // Use request.session which is populated by @fastify/session
+    const session = request.session;
 
     if (!session || !session.userId) {
       throw new AppError(401, 'AUTHENTICATION_ERROR', 'Session expired or invalid. Please login again.');
     }
 
-    // Attach session data to request
+    // Attach session data to request with proper typing
     (request as AuthenticatedRequest).session = {
       userId: session.userId,
-      username: session.username,
+      username: session.username || '',
     };
   } catch (error) {
     logger.warn('Authentication failed', {
