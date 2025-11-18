@@ -46,7 +46,7 @@ export async function getFullProjectData(
     
     // Get documentation metadata for this part
     const docsResult = await pool.query(
-      `SELECT id, file_name, file_type, file_size, description, created_at
+      `SELECT id, file_name, file_type, file_size, description, created_at, file_path
        FROM documentation
        WHERE part_id = $1 AND project_id = $2
        ORDER BY created_at DESC`,

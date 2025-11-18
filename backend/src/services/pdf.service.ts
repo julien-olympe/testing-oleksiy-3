@@ -90,8 +90,20 @@ function generateHTML(projectData: any): string {
       partsHtml += '<h3>Documentation</h3>';
       part.documentation.forEach((doc: any) => {
         if (doc.file_type.startsWith('image/')) {
-          // Note: In production, you'd need to embed images as base64 or use file URLs
-          partsHtml += `<p><strong>${escapeHtml(doc.file_name)}</strong></p>`;
+          try {
+            // Read image file and convert to base64
+            const imageBuffer = readFileSync(doc.file_path);
+            const base64Data = imageBuffer.toString('base64');
+            const dataUri = `data:${doc.file_type};base64,${base64Data}`;
+            partsHtml += `<div style="margin: 10px 0;">
+              <p><strong>${escapeHtml(doc.file_name)}</strong></p>
+              ${doc.description ? `<p>${escapeHtml(doc.description)}</p>` : ''}
+              <img src="${dataUri}" alt="${escapeHtml(doc.file_name)}" style="max-width: 100%; height: auto; margin-top: 10px;" />
+            </div>`;
+          } catch (error) {
+            // If file doesn't exist or can't be read, show filename and error message
+            partsHtml += `<p><strong>${escapeHtml(doc.file_name)}</strong> - Image unavailable</p>`;
+          }
         } else {
           partsHtml += `<p><strong>${escapeHtml(doc.file_name)}</strong> - ${escapeHtml(doc.description || 'No description')}</p>`;
         }
