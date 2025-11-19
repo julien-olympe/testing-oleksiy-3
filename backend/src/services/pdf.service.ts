@@ -1,7 +1,6 @@
 import puppeteer from 'puppeteer';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
 
 const PDF_TIMEOUT = 60000; // 60 seconds
 
@@ -71,8 +70,7 @@ function generateHTML(projectData: any): string {
     }
     
     if (part.checkups && part.checkups.length > 0) {
-      partsHtml += '<h3>Checkups</h3><table border="1" style="width: 100%; border-collapse: collapse;">
-        <thead><tr><th>Checkup</th><th>Status</th></tr></thead><tbody>';
+      partsHtml += '<h3>Checkups</h3><table border="1" style="width: 100%; border-collapse: collapse;"><thead><tr><th>Checkup</th><th>Status</th></tr></thead><tbody>';
       
       part.checkups.forEach((checkup: any) => {
         const statusText = checkup.status || 'Not set';

@@ -1,7 +1,6 @@
 import { pool } from '../config/database';
 import { Documentation } from '../types';
 import { readFileSync, unlinkSync, existsSync } from 'fs';
-import { join } from 'path';
 
 export async function createDocumentation(
   partId: string,

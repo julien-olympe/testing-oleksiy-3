@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { updateCheckupStatus } from '../services/checkup.service';
-import { getProjectById, verifyProjectOwnership } from '../services/project.service';
+import { getProjectById } from '../services/project.service';
 import { sendError, ErrorType, logError } from '../utils/errors';
 import { authenticate } from '../middleware/auth';
 

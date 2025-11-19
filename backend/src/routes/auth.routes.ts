@@ -6,7 +6,6 @@ import {
   verifyPassword,
 } from '../services/user.service';
 import { sendError, ErrorType, logError } from '../utils/errors';
-import { v4 as uuidv4 } from 'uuid';
 
 interface RegisterBody {
   username: string;

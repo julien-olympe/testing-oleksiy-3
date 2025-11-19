@@ -51,7 +51,7 @@ export async function reportsRoutes(fastify: FastifyInstance) {
         // Generate PDF
         try {
           const storagePath = process.env.FILE_STORAGE_PATH || './storage';
-          const pdfPath = await generateProjectPDF(projectData, storagePath);
+          await generateProjectPDF(projectData, storagePath);
           
           // Update project status
           const updatedProject = await updateProjectStatus(projectId, 'finished', userId);

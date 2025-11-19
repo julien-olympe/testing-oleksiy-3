@@ -3,8 +3,6 @@ import {
   createProject,
   getProjectsByUserId,
   getProjectById,
-  verifyProjectOwnership,
-  updateProjectStatus,
 } from '../services/project.service';
 import { getFullProjectData } from '../services/project-data.service';
 import { sendError, ErrorType, logError } from '../utils/errors';

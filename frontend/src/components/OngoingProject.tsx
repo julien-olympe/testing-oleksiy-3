@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { ProjectDetail, Part, Documentation } from '../types';
+import { ProjectDetail, Documentation } from '../types';
 import './OngoingProject.css';
 
 export function OngoingProject() {

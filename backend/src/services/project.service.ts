@@ -1,5 +1,5 @@
 import { pool } from '../config/database';
-import { Project, CheckupStatus } from '../types';
+import { Project } from '../types';
 
 export async function createProject(
   userId: string,

@@ -1,5 +1,5 @@
 import { pool } from '../config/database';
-import { Powerplant, Part, Checkup } from '../types';
+import { Powerplant } from '../types';
 
 export async function getAllPowerplants(): Promise<any[]> {
   const result = await pool.query(
