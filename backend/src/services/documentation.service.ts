@@ -14,7 +14,7 @@ export async function createDocumentation(
   const result = await pool.query(
     `INSERT INTO documentation 
      (part_id, project_id, file_path, file_type, file_name, file_size, description, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+     VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
      RETURNING *`,
     [partId, projectId, filePath, fileType, fileName, fileSize, description]
   );
@@ -28,7 +28,7 @@ export async function getDocumentationByPartAndProject(
   const result = await pool.query(
     `SELECT id, file_name, file_type, file_size, description, created_at
      FROM documentation
-     WHERE part_id = $1 AND project_id = $2
+     WHERE part_id = $1::uuid AND project_id = $2::uuid
      ORDER BY created_at DESC`,
     [partId, projectId]
   );
@@ -39,7 +39,7 @@ export async function getDocumentationById(
   documentationId: string
 ): Promise<Documentation | null> {
   const result = await pool.query(
-    'SELECT * FROM documentation WHERE id = $1',
+    'SELECT * FROM documentation WHERE id = $1::uuid',
     [documentationId]
   );
   return result.rows[0] || null;
@@ -59,14 +59,14 @@ export async function deleteDocumentation(
   }
   
   // Delete database record
-  await pool.query('DELETE FROM documentation WHERE id = $1', [documentationId]);
+  await pool.query('DELETE FROM documentation WHERE id = $1::uuid', [documentationId]);
 }
 
 export async function getProjectTotalStorageSize(
   projectId: string
 ): Promise<number> {
   const result = await pool.query(
-    'SELECT COALESCE(SUM(file_size), 0) as total_size FROM documentation WHERE project_id = $1',
+    'SELECT COALESCE(SUM(file_size), 0) as total_size FROM documentation WHERE project_id = $1::uuid',
     [projectId]
   );
   return parseInt(result.rows[0].total_size) || 0;

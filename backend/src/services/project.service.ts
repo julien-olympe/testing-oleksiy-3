@@ -13,7 +13,7 @@ export async function createProject(
     // Create project
     const projectResult = await client.query(
       `INSERT INTO projects (user_id, powerplant_id, status, created_at)
-       VALUES ($1, $2, 'in_progress', CURRENT_TIMESTAMP)
+       VALUES ($1::uuid, $2::uuid, 'in_progress', CURRENT_TIMESTAMP)
        RETURNING *`,
       [userId, powerplantId]
     );
@@ -22,8 +22,8 @@ export async function createProject(
     // Get all checkups for the powerplant
     const checkupsResult = await client.query(
       `SELECT c.id FROM checkups c
-       JOIN parts p ON c.part_id = p.id
-       WHERE p.powerplant_id = $1`,
+       JOIN parts p ON c.part_id::text = p.id::text
+       WHERE p.powerplant_id = $1::uuid`,
       [powerplantId]
     );
     
@@ -31,7 +31,7 @@ export async function createProject(
     for (const checkup of checkupsResult.rows) {
       await client.query(
         `INSERT INTO checkup_statuses (project_id, checkup_id, status, created_at, updated_at)
-         VALUES ($1, $2, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+         VALUES ($1::uuid, $2::uuid, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
         [project.id, checkup.id]
       );
     }
@@ -51,8 +51,8 @@ export async function getProjectsByUserId(userId: string): Promise<any[]> {
     `SELECT p.id, p.status, p.created_at, p.finished_at,
             pp.name as powerplant_name
      FROM projects p
-     JOIN powerplants pp ON p.powerplant_id = pp.id
-     WHERE p.user_id = $1
+     JOIN powerplants pp ON p.powerplant_id::text = pp.id::text
+     WHERE p.user_id = $1::uuid
      ORDER BY p.created_at DESC`,
     [userId]
   );
@@ -64,7 +64,7 @@ export async function getProjectById(
   userId: string
 ): Promise<Project | null> {
   const result = await pool.query(
-    'SELECT * FROM projects WHERE id = $1 AND user_id = $2',
+    'SELECT * FROM projects WHERE id = $1::uuid AND user_id = $2::uuid',
     [projectId, userId]
   );
   return result.rows[0] || null;
@@ -75,7 +75,7 @@ export async function verifyProjectOwnership(
   userId: string
 ): Promise<boolean> {
   const result = await pool.query(
-    'SELECT id FROM projects WHERE id = $1 AND user_id = $2',
+    'SELECT id FROM projects WHERE id = $1::uuid AND user_id = $2::uuid',
     [projectId, userId]
   );
   return result.rows.length > 0;
@@ -90,7 +90,7 @@ export async function updateProjectStatus(
   const result = await pool.query(
     `UPDATE projects 
      SET status = $1, finished_at = ${finishedAt}
-     WHERE id = $2 AND user_id = $3
+     WHERE id = $2::uuid AND user_id = $3::uuid
      RETURNING *`,
     [status, projectId, userId]
   );

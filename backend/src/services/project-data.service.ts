@@ -7,8 +7,8 @@ export async function getFullProjectData(
   const projectResult = await pool.query(
     `SELECT p.*, pp.name as powerplant_name
      FROM projects p
-     JOIN powerplants pp ON p.powerplant_id = pp.id
-     WHERE p.id = $1`,
+     JOIN powerplants pp ON p.powerplant_id::text = pp.id::text
+     WHERE p.id = $1::uuid`,
     [projectId]
   );
   
@@ -20,7 +20,7 @@ export async function getFullProjectData(
   
   // Get all parts for the powerplant
   const partsResult = await pool.query(
-    `SELECT * FROM parts WHERE powerplant_id = $1 ORDER BY name`,
+    `SELECT * FROM parts WHERE powerplant_id = $1::uuid ORDER BY name`,
     [project.powerplant_id]
   );
   
@@ -31,8 +31,8 @@ export async function getFullProjectData(
     const checkupsResult = await pool.query(
       `SELECT c.*, cs.status
        FROM checkups c
-       LEFT JOIN checkup_statuses cs ON c.id = cs.checkup_id AND cs.project_id = $1
-       WHERE c.part_id = $2
+       LEFT JOIN checkup_statuses cs ON c.id::text = cs.checkup_id::text AND cs.project_id = $1::uuid
+       WHERE c.part_id = $2::uuid
        ORDER BY c.name`,
       [projectId, part.id]
     );
@@ -48,7 +48,7 @@ export async function getFullProjectData(
     const docsResult = await pool.query(
       `SELECT id, file_name, file_type, file_size, description, created_at, file_path
        FROM documentation
-       WHERE part_id = $1 AND project_id = $2
+       WHERE part_id = $1::uuid AND project_id = $2::uuid
        ORDER BY created_at DESC`,
       [part.id, projectId]
     );

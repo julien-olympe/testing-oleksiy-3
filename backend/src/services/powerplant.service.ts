@@ -7,8 +7,8 @@ export async function getAllPowerplants(): Promise<any[]> {
             COUNT(DISTINCT pt.id) as parts_count,
             COUNT(DISTINCT c.id) as checkups_count
      FROM powerplants p
-     LEFT JOIN parts pt ON p.id = pt.powerplant_id
-     LEFT JOIN checkups c ON pt.id = c.part_id
+     LEFT JOIN parts pt ON p.id::text = pt.powerplant_id::text
+     LEFT JOIN checkups c ON pt.id::text = c.part_id::text
      GROUP BY p.id, p.name, p.description
      ORDER BY p.name`
   );
@@ -17,7 +17,7 @@ export async function getAllPowerplants(): Promise<any[]> {
 
 export async function getPowerplantById(id: string): Promise<Powerplant | null> {
   const result = await pool.query(
-    'SELECT * FROM powerplants WHERE id = $1',
+    'SELECT * FROM powerplants WHERE id = $1::uuid',
     [id]
   );
   return result.rows[0] || null;
@@ -27,7 +27,7 @@ export async function getPowerplantWithPartsAndCheckups(
   powerplantId: string
 ): Promise<any> {
   const powerplantResult = await pool.query(
-    'SELECT * FROM powerplants WHERE id = $1',
+    'SELECT * FROM powerplants WHERE id = $1::uuid',
     [powerplantId]
   );
   
@@ -38,7 +38,7 @@ export async function getPowerplantWithPartsAndCheckups(
   const powerplant = powerplantResult.rows[0];
   
   const partsResult = await pool.query(
-    `SELECT * FROM parts WHERE powerplant_id = $1 ORDER BY name`,
+    `SELECT * FROM parts WHERE powerplant_id = $1::uuid ORDER BY name`,
     [powerplantId]
   );
   
@@ -46,7 +46,7 @@ export async function getPowerplantWithPartsAndCheckups(
   
   for (const part of parts) {
     const checkupsResult = await pool.query(
-      'SELECT * FROM checkups WHERE part_id = $1 ORDER BY name',
+      'SELECT * FROM checkups WHERE part_id = $1::uuid ORDER BY name',
       [part.id]
     );
     part.checkups = checkupsResult.rows;
