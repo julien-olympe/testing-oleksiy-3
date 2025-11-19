@@ -1,0 +1,31 @@
+{
+  "name": "wind-power-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Wind Power Plant Status Investigation",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "migrate": "ts-node src/migrations/run-migrations.ts"
+  },
+  "dependencies": {
+    "fastify": "latest",
+    "@fastify/jwt": "latest",
+    "@fastify/multipart": "latest",
+    "@fastify/cors": "latest",
+    "bcrypt": "latest",
+    "pg": "latest",
+    "puppeteer": "latest",
+    "uuid": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/bcrypt": "latest",
+    "@types/pg": "latest",
+    "@types/uuid": "latest",
+    "typescript": "latest",
+    "ts-node": "latest",
+    "nodemon": "latest"
+  }
+}

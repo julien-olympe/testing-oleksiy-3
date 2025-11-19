@@ -1,0 +1,271 @@
+.ongoing-project-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.project-header {
+  background: white;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.project-header h1 {
+  flex: 1;
+  margin: 0;
+  color: #333;
+}
+
+.finish-button {
+  padding: 0.75rem 1.5rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.finish-button:hover:not(:disabled) {
+  background: #218838;
+}
+
+.finish-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-banner {
+  background: #fee;
+  color: #c33;
+  padding: 1rem 2rem;
+  text-align: center;
+}
+
+.project-main {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+.project-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+.parts-section,
+.documentation-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.parts-section h2,
+.documentation-section h2 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 0.5rem;
+}
+
+.part-item {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.part-item:hover {
+  background: #f8f9fa;
+}
+
+.part-item.selected {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.part-item h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.part-description {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.checkups {
+  margin-left: 1rem;
+}
+
+.checkup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.checkup-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.checkup-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.checkup-description {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.status-btn {
+  padding: 0.5rem 1rem;
+  border: 2px solid;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.status-btn.bad {
+  border-color: #d32f2f;
+  color: #d32f2f;
+  background: white;
+}
+
+.status-btn.bad.active {
+  background: #d32f2f;
+  color: white;
+}
+
+.status-btn.average {
+  border-color: #f57c00;
+  color: #f57c00;
+  background: white;
+}
+
+.status-btn.average.active {
+  background: #f57c00;
+  color: white;
+}
+
+.status-btn.good {
+  border-color: #388e3c;
+  color: #388e3c;
+  background: white;
+}
+
+.status-btn.good.active {
+  background: #388e3c;
+  color: white;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-badge.bad {
+  background: #d32f2f;
+  color: white;
+}
+
+.status-badge.average {
+  background: #f57c00;
+  color: white;
+}
+
+.status-badge.good {
+  background: #388e3c;
+  color: white;
+}
+
+.upload-section {
+  margin-bottom: 1rem;
+}
+
+.upload-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #667eea;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.upload-button:hover {
+  background: #5568d3;
+}
+
+.documentation-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.doc-item {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.doc-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+}
+
+.doc-file {
+  padding: 1rem;
+  background: #f8f9fa;
+}
+
+.doc-file a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.doc-file a:hover {
+  text-decoration: underline;
+}
+
+.doc-description {
+  padding: 0.5rem 1rem;
+  margin: 0;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.empty-docs {
+  text-align: center;
+  padding: 2rem;
+  color: #999;
+}
+
+@media (max-width: 768px) {
+  .project-layout {
+    grid-template-columns: 1fr;
+  }
+}
