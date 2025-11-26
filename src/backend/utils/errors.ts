@@ -29,15 +29,21 @@ export function sendError(reply: FastifyReply, error: AppError | Error, context?
     logger.error('API error', { ...context, statusCode: error.statusCode, errorCode: error.errorCode });
     reply.status(error.statusCode).send(errorResponse);
   } else {
-    // Unexpected error - don't expose internal details
-    logger.error('Unexpected error', context, {
+    // Unexpected error - don't expose internal details in production
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    logger.error('Unexpected error', {
+      ...context,
+      errorMessage: error.message,
+    }, {
       code: 'INTERNAL_ERROR',
       stack: error.stack,
     });
 
     const errorResponse: ApiError = {
       error: 'INTERNAL_ERROR',
-      message: 'An unexpected error occurred. Please try again.',
+      message: isDevelopment 
+        ? `An unexpected error occurred: ${error.message}` 
+        : 'An unexpected error occurred. Please try again.',
       timestamp: new Date().toISOString(),
     };
 

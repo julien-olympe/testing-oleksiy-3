@@ -33,14 +33,15 @@ test.describe('Critical Path - Complete User Journey', () => {
     await expect(page.locator('text=Login').or(page.locator('h2')).first()).toBeVisible();
     
     // Step 2: Navigate to registration screen
-    const registerLink = page.locator('a:has-text("Register")').or(page.locator('text=/register/i')).first();
-    if (await registerLink.isVisible()) {
-      await registerLink.click();
-    } else {
-      // Try to find register button or link
-      await page.locator('button:has-text("Register")').or(page.locator('[href*="register"]')).first().click();
-    }
-    await expect(page).toHaveURL(/.*register/i);
+    // Wait for page to be stable on login page
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/.*login/i, { timeout: 5000 });
+    
+    // Now click register link
+    const registerLink = page.locator('a:has-text("Register")').or(page.locator('[href*="register"]')).first();
+    await registerLink.waitFor({ state: 'visible', timeout: 5000 });
+    await registerLink.click();
+    await expect(page).toHaveURL(/.*register/i, { timeout: 5000 });
 
     // Step 3: Fill registration form
     await page.fill('input[name="username"], input[placeholder*="username" i], input[type="text"]:first-of-type', testData.username);
@@ -52,18 +53,37 @@ test.describe('Critical Path - Complete User Journey', () => {
     }
 
     // Step 4: Submit registration
+    // Wait for the API call to complete
+    const responsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/auth/register') && response.status() !== 0,
+      { timeout: 10000 }
+    ).catch(() => null);
+    
     await page.click('button:has-text("Register"), button[type="submit"]');
-    // Wait for either redirect to login or error message
-    await page.waitForTimeout(2000);
-    const currentUrl = page.url();
-    if (!currentUrl.includes('login')) {
-      // Check for error message
+    
+    // Wait for API response
+    const response = await responsePromise;
+    if (response && !response.ok()) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Registration API failed: ${response.status()} - ${JSON.stringify(errorData)}`);
+    }
+    
+    // Wait for navigation to login page
+    try {
+      await page.waitForURL(/.*login/i, { timeout: 10000 });
+    } catch (error) {
+      // Check if there's an error message instead
       const errorElement = page.locator('[style*="background-color: #fee"], [style*="color: #c33"]');
-      if (await errorElement.isVisible()) {
+      if (await errorElement.isVisible({ timeout: 2000 })) {
         const errorText = await errorElement.textContent();
         throw new Error(`Registration failed with error: ${errorText}`);
       }
+      // Log current URL for debugging
+      const currentUrl = page.url();
+      throw new Error(`Registration did not redirect to login. Current URL: ${currentUrl}`);
     }
+    
+    // Verify we're on login page
     await expect(page).toHaveURL(/.*login/i, { timeout: 5000 });
 
     // Phase 2: User Login (Steps 5-6)
@@ -72,25 +92,178 @@ test.describe('Critical Path - Complete User Journey', () => {
     await page.fill('input[name="password"], input[type="password"]', testData.password);
 
     // Step 6: Submit login
+    // Set up response listeners before making requests
+    const allProjectsResponses: any[] = [];
+    page.on('response', (response) => {
+      if (response.url().includes('/api/projects')) {
+        allProjectsResponses.push({
+          url: response.url(),
+          status: response.status(),
+          statusText: response.statusText(),
+        });
+      }
+    });
+    
+    // Wait for login API call to complete
+    const loginResponsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/auth/login') && response.status() !== 0,
+      { timeout: 10000 }
+    ).catch(() => null);
+    
+    // Set up projects API response listener before navigation
+    const projectsResponsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/projects') && response.status() !== 0,
+      { timeout: 15000 }
+    ).catch(() => null);
+    
     await page.click('button:has-text("Login"), button[type="submit"]');
-    await expect(page).toHaveURL(/.*home/i, { timeout: 5000 });
+    
+    // Wait for login API response
+    const loginResponse = await loginResponsePromise;
+    if (loginResponse && !loginResponse.ok()) {
+      const errorData = await loginResponse.json().catch(() => ({}));
+      throw new Error(`Login API failed: ${loginResponse.status()} - ${JSON.stringify(errorData)}`);
+    }
+    
+    // Check if session cookie was set
+    await page.waitForTimeout(500); // Give time for cookie to be set
+    const cookies = await page.context().cookies();
+    const sessionCookie = cookies.find(c => c.name.includes('session') || c.name.includes('sid'));
+    if (!sessionCookie) {
+      throw new Error(`Session cookie not set after login. Cookies: ${cookies.map(c => c.name).join(', ')}`);
+    }
+    
+    // Log cookie details for debugging
+    console.log('Session cookie details:', {
+      name: sessionCookie.name,
+      domain: sessionCookie.domain,
+      path: sessionCookie.path,
+      sameSite: sessionCookie.sameSite,
+      httpOnly: sessionCookie.httpOnly,
+    });
+    
+    // Verify we're redirected to home
+    await expect(page).toHaveURL(/.*home/i, { timeout: 10000 });
+    
+    // Wait for navigation and give time for cookie to be available
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Extra wait for cookie to be fully available
+    
+    // Double-check URL after waiting
+    const currentUrl = page.url();
+    if (currentUrl.includes('/login')) {
+      await page.waitForTimeout(1000); // Wait for any pending API calls
+      throw new Error(`Still on login page after login. URL: ${currentUrl}. Session cookie: ${sessionCookie.name}. Projects API responses: ${JSON.stringify(allProjectsResponses)}`);
+    }
 
     // Phase 3: Start New Project (Steps 7-8)
     // Step 7: Verify Home screen
-    await expect(page.locator('text=/my projects/i, text=/projects/i, h1, h2').first()).toBeVisible();
-    const startProjectButton = page.locator('button:has-text("Start Project"), button:has-text("New Project"), a:has-text("Start Project")');
-    await expect(startProjectButton.first()).toBeVisible();
+    // Wait for projects API call to complete (it's called when HomePage loads)
+    const projectsResponse = await projectsResponsePromise;
+    if (projectsResponse) {
+      if (!projectsResponse.ok()) {
+        const errorData = await projectsResponse.json().catch(() => ({}));
+        // Check cookies that were sent with the request
+        const requestHeaders = projectsResponse.request().headers();
+        throw new Error(`Projects API failed: ${projectsResponse.status()} - ${JSON.stringify(errorData)}. Request had cookie: ${requestHeaders['cookie'] ? 'yes' : 'no'}`);
+      }
+    } else {
+      // API call might not have happened - check if we're still on login
+      const currentUrl = page.url();
+      if (currentUrl.includes('/login')) {
+        throw new Error(`Projects API was not called - still on login page. URL: ${currentUrl}`);
+      }
+    }
+    
+    // Wait for loading to complete (wait for "Loading projects..." to disappear)
+    await page.waitForSelector('text=Loading projects...', { state: 'hidden', timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('networkidle');
+    
+    // Check for error messages on the page
+    const errorElement = page.locator('[style*="background-color: #fee"], [style*="color: #c33"]');
+    if (await errorElement.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const errorText = await errorElement.textContent();
+      throw new Error(`Home page error: ${errorText}`);
+    }
+    
+    await expect(page.locator('text=/my projects/i').or(page.locator('text=/projects/i')).or(page.locator('h2')).first()).toBeVisible({ timeout: 10000 });
+    
+    // Debug: Check what buttons are on the page and current URL
+    const pageUrl = page.url();
+    const allButtons = await page.locator('button').all();
+    const buttonTexts = await Promise.all(allButtons.map(btn => btn.textContent().catch(() => '')));
+    
+    // If we're still on login page, that's the problem
+    if (pageUrl.includes('/login') || buttonTexts.includes('Login')) {
+      // Check cookies again
+      const cookies = await page.context().cookies();
+      const sessionCookie = cookies.find(c => c.name.includes('session') || c.name.includes('sid'));
+      throw new Error(`Still on login page. URL: ${pageUrl}, Buttons: ${buttonTexts.join(', ')}, Session cookie: ${sessionCookie ? sessionCookie.name : 'missing'}`);
+    }
+    
+    // Try multiple selectors for the Start Project button
+    const startProjectButton = page.locator('button:has-text("Start Project")')
+      .or(page.locator('button').filter({ hasText: 'Start Project' }))
+      .or(page.locator('[role="button"]').filter({ hasText: 'Start Project' }));
+    
+    // Check if button exists (even if not visible)
+    const buttonCount = await startProjectButton.count();
+    if (buttonCount === 0) {
+      // Take a screenshot for debugging
+      await page.screenshot({ path: '/tmp/home-page-debug.png' });
+      throw new Error(`Start Project button not found. URL: ${pageUrl}, Buttons on page: ${buttonTexts.join(', ')}`);
+    }
+    
+    await expect(startProjectButton.first()).toBeVisible({ timeout: 10000 });
 
     // Step 8: Navigate to Start Project screen
-    await startProjectButton.first().click();
+    await startProjectButton.click();
     await expect(page).toHaveURL(/.*projects.*new/i, { timeout: 5000 });
 
     // Phase 4: Select Powerplant (Step 9)
     // Step 9: Select powerplant
-    const powerplantSelect = page.locator('select[name="powerplantId"], select, [role="combobox"]').first();
+    // Wait for powerplants API call
+    const powerplantsResponsePromise = page.waitForResponse(
+      (response) => response.url().includes('/api/powerplants') && response.status() !== 0,
+      { timeout: 10000 }
+    ).catch(() => null);
+    
+    const powerplantSelect = page.locator('select#powerplant, select[name="powerplantId"], select').first();
     await expect(powerplantSelect).toBeVisible({ timeout: 10000 });
-    await powerplantSelect.selectOption({ index: 0 }); // Select first powerplant
-    await page.waitForTimeout(1000); // Wait for parts/checkups to load
+    
+    // Wait for powerplants API response
+    const powerplantsResponse = await powerplantsResponsePromise;
+    if (powerplantsResponse && !powerplantsResponse.ok()) {
+      const errorData = await powerplantsResponse.json().catch(() => ({}));
+      throw new Error(`Powerplants API failed: ${powerplantsResponse.status()} - ${JSON.stringify(errorData)}`);
+    }
+    
+    // Wait for powerplants to load (check that there are options beyond the default empty one)
+    try {
+      await page.waitForFunction(
+        (select) => {
+          const sel = select as HTMLSelectElement;
+          return sel.options.length > 1;
+        },
+        await powerplantSelect.elementHandle(),
+        { timeout: 10000 }
+      );
+    } catch (error) {
+      // Check if there's an error message
+      const errorElement = page.locator('[style*="background-color: #fee"], [style*="color: #c33"]');
+      if (await errorElement.isVisible({ timeout: 2000 }).catch(() => false)) {
+        const errorText = await errorElement.textContent();
+        throw new Error(`Powerplants failed to load: ${errorText}`);
+      }
+      throw new Error(`No powerplants available in database. Powerplants API status: ${powerplantsResponse?.status() || 'not called'}`);
+    }
+    
+    // Select first actual powerplant (index 1, since index 0 is the empty option)
+    await powerplantSelect.selectOption({ index: 1 });
+    
+    // Wait for parts/checkups to load (check for parts section to appear)
+    await page.waitForSelector('text=/Parts and Checkups/i', { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(500); // Additional wait for state updates
 
     // Phase 5: Create Project (Steps 10-11)
     // Step 10: Create project

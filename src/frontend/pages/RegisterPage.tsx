@@ -72,6 +72,7 @@ export function RegisterPage() {
           </label>
           <input
             id="username"
+            name="username"
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -97,6 +98,7 @@ export function RegisterPage() {
           </label>
           <input
             id="email"
+            name="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -119,6 +121,7 @@ export function RegisterPage() {
           </label>
           <input
             id="password"
+            name="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -143,6 +146,7 @@ export function RegisterPage() {
           </label>
           <input
             id="passwordConfirmation"
+            name="passwordConfirmation"
             type="password"
             value={passwordConfirmation}
             onChange={(e) => setPasswordConfirmation(e.target.value)}
