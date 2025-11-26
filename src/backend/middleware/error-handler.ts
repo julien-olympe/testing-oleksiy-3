@@ -7,6 +7,11 @@ export async function errorHandler(
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
+  // Don't send error response if response has already been sent
+  if (reply.sent || (reply as any).raw?.headersSent) {
+    return;
+  }
+
   if (error instanceof AppError) {
     sendError(reply, error, {
       endpoint: request.url,

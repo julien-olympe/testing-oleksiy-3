@@ -15,15 +15,23 @@ export async function responseLogger(
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
+  // Don't log if response has already been sent
+  if (reply.sent || (reply as any).raw?.headersSent) {
+    return;
+  }
+  
   const startTime = requestTimings.get(request.id);
   if (startTime) {
     const duration = Date.now() - startTime;
     requestTimings.delete(request.id);
 
+    // Safely get status code
+    const statusCode = reply.statusCode || (reply as any).raw?.statusCode || 200;
+
     logger.debug('Request completed', {
       method: request.method,
       url: request.url,
-      statusCode: reply.statusCode,
+      statusCode: statusCode,
       duration: `${duration}ms`,
       ipAddress: request.ip,
     });
