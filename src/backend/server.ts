@@ -21,75 +21,99 @@ const fastify = Fastify({
 
 // Register plugins
 async function start() {
-  // CORS
-  await fastify.register(fastifyCors, {
-    origin: FRONTEND_URL,
-    credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
-  });
+  try {
+    console.log('Starting server setup...');
+    // CORS
+    console.log('Registering CORS...');
+    await fastify.register(fastifyCors, {
+      origin: FRONTEND_URL,
+      credentials: true,
+      methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    });
 
-  // Cookie support
-  await fastify.register(fastifyCookie, {
-    secret: SESSION_SECRET,
-  });
+    // Cookie support
+    console.log('Registering cookie...');
+    await fastify.register(fastifyCookie, {
+      secret: SESSION_SECRET,
+    });
 
-  // Session support
-  await fastify.register(fastifySession, {
-    secret: SESSION_SECRET,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 86400, // 24 hours
-    },
-  });
+    // Session support
+    console.log('Registering session...');
+    await fastify.register(fastifySession, {
+      secret: SESSION_SECRET,
+      cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 86400, // 24 hours
+      },
+    });
+    console.log('Session registered successfully');
+  } catch (err) {
+    console.error('Error during plugin registration:', err);
+    throw err;
+  }
 
-  // Rate limiting
-  await fastify.register(fastifyRateLimit, {
-    max: 100,
-    timeWindow: '1 minute',
-    skipOnError: false,
-  });
+  try {
+    // Rate limiting
+    console.log('Registering rate limit...');
+    await fastify.register(fastifyRateLimit, {
+      max: 100,
+      timeWindow: '1 minute',
+      skipOnError: false,
+    });
 
-  // Request logging - store start time
-  fastify.addHook('onRequest', requestLogger);
+    // Request logging - store start time
+    console.log('Adding hooks...');
+    fastify.addHook('onRequest', requestLogger);
 
-  // Security headers and request completion logging on all responses
-  fastify.addHook('onSend', async (request, reply) => {
-    setSecurityHeaders(reply);
-    
-    // Log request completion if start time was set
-    const startTime = (request as any).startTime;
-    if (startTime) {
-      const duration = Date.now() - startTime;
-      const { logger } = await import('./utils/logger');
-      logger.debug('Request completed', {
-        method: request.method,
-        url: request.url,
-        statusCode: reply.statusCode,
-        duration: `${duration}ms`,
-        ipAddress: request.ip,
-      });
-    }
-  });
+    // Security headers and request completion logging on all responses
+    fastify.addHook('onSend', async (request, reply) => {
+      setSecurityHeaders(reply);
+      
+      // Log request completion if start time was set
+      const startTime = (request as any).startTime;
+      if (startTime) {
+        const duration = Date.now() - startTime;
+        const { logger } = await import('./utils/logger');
+        logger.debug('Request completed', {
+          method: request.method,
+          url: request.url,
+          statusCode: reply.statusCode,
+          duration: `${duration}ms`,
+          ipAddress: request.ip,
+        });
+      }
+    });
 
-  // Error handler
-  fastify.setErrorHandler(errorHandler);
+    // Error handler
+    fastify.setErrorHandler(errorHandler);
 
-  // Register routes
-  await fastify.register(authRoutes);
-  await fastify.register(projectsRoutes);
-  await fastify.register(powerplantsRoutes);
-  await fastify.register(healthRoutes);
+    // Register routes
+    console.log('Registering routes...');
+    await fastify.register(authRoutes);
+    await fastify.register(projectsRoutes);
+    await fastify.register(powerplantsRoutes);
+    await fastify.register(healthRoutes);
+    console.log('All routes registered');
+  } catch (err) {
+    console.error('Error during route/hook registration:', err);
+    throw err;
+  }
 
   // Start server
   try {
+    console.log(`Starting server on port ${PORT}...`);
     await fastify.listen({ port: PORT, host: '0.0.0.0' });
     console.log(`Server listening on port ${PORT}`);
   } catch (err) {
+    console.error('Error starting server:', err);
     fastify.log.error(err);
     process.exit(1);
   }
 }
 
-start();
+start().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});
